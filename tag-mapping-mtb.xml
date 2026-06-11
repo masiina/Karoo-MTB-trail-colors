@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tag-mapping xmlns="http://mapsforge.org/tag-mapping"
+  default-zoom-appear="16"
+  map-default-zoom-appear="0">
+
+  <!-- ====== PATHS ====== -->
+  <osm-tag key="highway" value="path"       zoom-appear="13" />
+  <osm-tag key="highway" value="track"      zoom-appear="12" />
+  <osm-tag key="highway" value="footway"    zoom-appear="14" />
+  <osm-tag key="highway" value="cycleway"   zoom-appear="14" />
+  <osm-tag key="highway" value="bridleway"  zoom-appear="14" />
+  <osm-tag key="highway" value="steps"      zoom-appear="15" />
+
+  <!-- ====== MTB SCALE (downhill difficulty) ====== -->
+  <osm-tag key="mtb:scale"        value="0" zoom-appear="13" />
+  <osm-tag key="mtb:scale"        value="1" zoom-appear="13" />
+  <osm-tag key="mtb:scale"        value="2" zoom-appear="13" />
+  <osm-tag key="mtb:scale"        value="3" zoom-appear="13" />
+  <osm-tag key="mtb:scale"        value="4" zoom-appear="13" />
+  <osm-tag key="mtb:scale"        value="5" zoom-appear="13" />
+  <osm-tag key="mtb:scale"        value="6" zoom-appear="13" />
+
+  <!-- ====== MTB SCALE UPHILL ====== -->
+  <osm-tag key="mtb:scale:uphill" value="0" zoom-appear="13" />
+  <osm-tag key="mtb:scale:uphill" value="1" zoom-appear="13" />
+  <osm-tag key="mtb:scale:uphill" value="2" zoom-appear="13" />
+  <osm-tag key="mtb:scale:uphill" value="3" zoom-appear="13" />
+  <osm-tag key="mtb:scale:uphill" value="4" zoom-appear="13" />
+  <osm-tag key="mtb:scale:uphill" value="5" zoom-appear="13" />
+
+  <!-- ====== MTB SCALE IMBA ====== -->
+  <osm-tag key="mtb:scale:imba"   value="0" zoom-appear="13" />
+  <osm-tag key="mtb:scale:imba"   value="1" zoom-appear="13" />
+  <osm-tag key="mtb:scale:imba"   value="2" zoom-appear="13" />
+  <osm-tag key="mtb:scale:imba"   value="3" zoom-appear="13" />
+  <osm-tag key="mtb:scale:imba"   value="4" zoom-appear="13" />
+
+  <!-- ====== TRAIL ATTRIBUTES ====== -->
+  <osm-tag key="tracktype"  value="grade1" zoom-appear="12" />
+  <osm-tag key="tracktype"  value="grade2" zoom-appear="12" />
+  <osm-tag key="tracktype"  value="grade3" zoom-appear="12" />
+  <osm-tag key="tracktype"  value="grade4" zoom-appear="12" />
+  <osm-tag key="tracktype"  value="grade5" zoom-appear="12" />
+  <osm-tag key="surface"    value="*"       zoom-appear="14" renderable="false" />
+  <osm-tag key="trail_visibility" value="*" zoom-appear="14" renderable="false" />
+
+  <!-- ====== ACCESS ====== -->
+  <osm-tag key="bicycle" value="yes"          zoom-appear="13" renderable="false" />
+  <osm-tag key="bicycle" value="no"           zoom-appear="13" renderable="false" />
+  <osm-tag key="bicycle" value="designated"   zoom-appear="13" renderable="false" />
+  <osm-tag key="bicycle" value="dismount"     zoom-appear="13" renderable="false" />
+  <osm-tag key="bicycle" value="permissive"   zoom-appear="13" renderable="false" />
+  <osm-tag key="bicycle" value="private"      zoom-appear="13" renderable="false" />
+  <osm-tag key="foot"    value="yes"          zoom-appear="13" renderable="false" />
+  <osm-tag key="foot"    value="no"           zoom-appear="13" renderable="false" />
+
+  <!-- ====== NAMES & REFS ====== -->
+  <osm-tag key="name"     zoom-appear="14" renderable="false" />
+  <osm-tag key="ref"      zoom-appear="13" renderable="false" />
+  <osm-tag key="mtb:name" zoom-appear="13" renderable="false" />
+
+  <!-- ====== MTB ROUTE NETWORK ====== -->
+  <osm-tag key="network"  value="lcn" zoom-appear="13" renderable="false" />
+  <osm-tag key="network"  value="rcn" zoom-appear="12" renderable="false" />
+  <osm-tag key="network"  value="ncn" zoom-appear="11" renderable="false" />
+  <osm-tag key="route"    value="mtb" zoom-appear="13" />
+
+  <!-- ====== CONTOUR (if added later) ====== -->
+  <osm-tag key="contour"  value="elevation" zoom-appear="14" />
+  <osm-tag key="ele"      zoom-appear="14" renderable="false" />
+
+</tag-mapping>

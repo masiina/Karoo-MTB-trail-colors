@@ -1,0 +1,42 @@
+# Build tools cache (auto-downloaded)
+build-tools/
+.build/
+
+# Build artifacts
+*.osm.pbf
+*-mtb-scale-only.osm.pbf
+*-mtb-overlay.map
+
+# Mapsforge source (no longer needed — pre-built JAR used)
+mapsforge-*/
+
+# Gradle (no longer needed)
+.gradle/
+
+# JDK/JRE downloads (auto-downloaded)
+jdk-*.zip
+jre-*.zip
+
+# Osmosis download (auto-downloaded)
+osmosis-*.zip
+
+# Platform Tools download (auto-downloaded)
+platform-tools.zip
+
+# Temp extraction dirs
+jdk-extract-temp/
+jre-extract-temp/
+adb-extract-temp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# PowerShell
+*.pssession*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
