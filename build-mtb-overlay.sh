@@ -324,7 +324,8 @@ ensure_theme_file() {
             <area mesh="true" fill="#f5e8d6"/>
         </m>
         <m v="rock|bare_rock|stone|scree|glacier|cliff">
-            <area mesh="true" fill="#cccccc"/>
+            <area mesh="true" fill="#d5c8af" stroke="#8b7355" stroke-width="0.3"/>
+            <area src="file:/icons/bare_rock.svg" symbol-height="64" symbol-width="64"/>
         </m>
     </m>
 
@@ -351,11 +352,6 @@ ensure_theme_file() {
         <area use="water"/>
     </m>
     <!-- End landuse, natural, leisure, tourism, amenity areas -->
-
-    <m k="natural" v="rock|bare_rock|stone|scree|glacier|cliff">
-        <area mesh="true" fill="#d5c8af" stroke="#8b7355" stroke-width="0.3"/>
-        <area src="file:/icons/bare_rock.svg" symbol-height="64" symbol-width="64"/>
-    </m>
 
     <!-- Waterways (rivers, streams, etc.) -->
     <m e="way" k="waterway">
