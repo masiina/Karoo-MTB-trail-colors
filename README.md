@@ -21,7 +21,7 @@ Each trail renders as a solid color casing (width 0.9) with a dashed black cente
 
 ### Bare Rock / Bedrock
 
-The overlay also includes `natural=bare_rock` areas, shown as sandy-brown filled polygons (`#d5c8af`) with a dark brown outline (`#8b7355`, 0.3px). These highlight exposed bedrock and rocky terrain that is relevant for MTB route planning.
+The overlay also includes `natural=bare_rock` areas, shown as sandy-brown filled polygons (`#d5c8af`) with a dark brown outline (`#8b7355`, 0.3px) and a tiled rock-pattern overlay. These highlight exposed bedrock and rocky terrain that is relevant for MTB route planning.
 
 ## Supported Regions
 
@@ -116,5 +116,6 @@ Cached tools are stored in `build-tools/`. PBF data files are also cached there.
 | `build-mtb-overlay.sh` | Linux CLI with push support |
 | `build-mtb-tui.sh` | Linux interactive TUI |
 | `data/offline_v15.xml` | Karoo 3 render theme (shared by both maps); pushed as the detected `offline_vXXX.xml` on device |
+| `data/patterns/bare_rock.svg` | Tiled rock-pattern overlay for bare_rock areas |
 | `data/<region>-mtb-overlay.map` | Built overlay maps (gitignored) |
 | `tag-mapping-mtb.xml` | Reference tag-mapping |

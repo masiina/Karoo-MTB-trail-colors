@@ -337,6 +337,7 @@ function Ensure-ThemeFile {
 
     <m k="natural" v="rock|bare_rock|stone|scree|glacier|cliff">
         <area mesh="true" fill="#d5c8af" stroke="#8b7355" stroke-width="0.3"/>
+        <area src="file:/patterns/bare_rock.svg" symbol-height="64" symbol-width="64"/>
     </m>
 
     <!-- Waterways (rivers, streams, etc.) -->
@@ -1670,6 +1671,21 @@ function Invoke-PushPipeline {
         }
     } else {
         Add-Log "NOTE: No offline_v15.xml found in data/ folder. Place the theme file there to push it (will be pushed as ${themeFilename} on device)."
+    }
+
+    # 7. Push pattern assets if available
+    $patternsDir = Join-Path $ScriptDir 'data\patterns'
+    if (Test-Path $patternsDir) {
+        Add-Log 'Pushing pattern assets...'
+        Set-Status 'Pushing patterns...'
+        & $adb shell "mkdir -p ${themeBase}/patterns" 2>&1 | Out-Null
+        $pushResult = & $adb push $patternsDir "${themeBase}/patterns/" 2>&1
+        Add-Log "  $pushResult"
+        if ($LASTEXITCODE -eq 0) {
+            Add-Log 'Pattern assets pushed successfully.'
+        } else {
+            Add-Log '  WARNING: Failed to push pattern assets.'
+        }
     }
 
     Add-Log ''
