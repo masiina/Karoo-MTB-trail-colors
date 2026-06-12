@@ -4,7 +4,7 @@ Build Mapsforge overlay maps that render MTB trail difficulty as colored lines o
 
 ## What It Does
 
-Produces an overlay map containing **only** ways with `mtb:scale` tags. When displayed alongside a base map using the shared `offline_v15.xml` theme, colored trail lines appear on top without duplicating roads, buildings, or other features.
+Produces an overlay map containing ways with `mtb:scale` tags and `natural=bare_rock` areas. When displayed alongside a base map using the shared `offline_v15.xml` theme, colored trail lines and bare rock areas appear on top without duplicating roads, buildings, or other features.
 
 ### MTB Scale Colors
 
@@ -35,7 +35,7 @@ Double-click **`MTB Overlay Builder.bat`** or run:
 powershell -ExecutionPolicy Bypass -File mtb-overlay-builder.ps1
 ```
 
-Select a country, click **Build Map**, then **Push to Karoo**. Everything is auto-downloaded on first run.
+Select a country, click **Build Map**, then **Push to Karoo & Reboot**. Everything is auto-downloaded on first run.
 
 ### Linux (CLI)
 
@@ -46,8 +46,8 @@ sudo apt install openjdk-17-jre osmium-tool curl
 ./build-mtb-overlay.sh                  # Build for Finland (default)
 ./build-mtb-overlay.sh germany          # Build for another country
 ./build-mtb-overlay.sh --download finland  # Force fresh download
-./build-mtb-overlay.sh --push finland    # Build and push to Karoo
-./build-mtb-overlay.sh --push-only finland # Push existing map only
+./build-mtb-overlay.sh --push finland    # Build and push to Karoo (reboots device)
+./build-mtb-overlay.sh --push-only finland # Push existing map and reboot
 ```
 
 ### Linux (TUI)
@@ -57,19 +57,23 @@ sudo apt install whiptail openjdk-17-jre osmium-tool curl
 ./build-mtb-tui.sh
 ```
 
-Menu-driven interface with country selection, cached data management, and push-to-Karoo support.
+Menu-driven interface with country selection, cached data management, and push-to-Karoo & reboot support.
 
-## Push to Karoo
+## Push to Karoo & Reboot
 
 All scripts support pushing to a Karoo device via ADB:
 
 1. Detects the Karoo's storage path (`/sdcard/offline/maps/`)
-2. Backs up any existing theme file
-3. Pushes the `.map` file and `offline_v15.xml`
+2. Detects the actual `offline_vXXX.xml` theme filename on the device (e.g., `offline_v15.xml`, `offline_v16.xml`)
+3. Backs up the existing theme file as `<filename>.bak`
+4. Pushes the `.map` file and the theme file (using the detected device filename)
+5. Reboots the device so the new map data is loaded
 
 On Windows, ADB is auto-downloaded if missing. On Linux, install it separately (`sudo apt install adb`).
 
-For manual transfer: copy files from `data/` to the Karoo and add the overlay as a second map layer using the shared theme.
+> **Note:** Developer options must be enabled on the Karoo device for ADB push to work. Go to **Settings → Device Info** and tap the build number 7 times to unlock developer options, then enable **USB debugging** under **Settings → Developer Options**.
+
+For manual transfer: copy files from `data/` to the Karoo, then reboot the device. Add the overlay as a second map layer using the shared theme.
 
 ## Self-Contained Downloads
 
@@ -95,9 +99,9 @@ Cached tools are stored in `build-tools/`. PBF data files are also cached there.
 | Format | `tag-values=false` (V4) | Maximum device compatibility |
 | Tag-mapping | Default Mapsforge + MTB tags merged | Wildcard/minimal mappings produce broken maps |
 | Map type | `type=ram` | Filtered PBF fits in memory |
-| JVM heap | `-Xmx1g` | Sufficient for filtered data |
+| JVM heap | `-Xmx2g` | Needed for bare_rock polygon data |
 | Zoom intervals | `5,0,7,10,8,11,14,12,21` | Must be adjacent |
-| Filter | `--tf accept-ways mtb:scale=*` | Overlay only — prevents duplication with base map |
+| Filter | `--tf accept-ways mtb:scale=* natural=bare_rock` | Overlay only — prevents duplication with base map |
 
 ## Project Files
 
@@ -107,6 +111,6 @@ Cached tools are stored in `build-tools/`. PBF data files are also cached there.
 | `MTB Overlay Builder.bat` | Windows double-click launcher |
 | `build-mtb-overlay.sh` | Linux CLI with push support |
 | `build-mtb-tui.sh` | Linux interactive TUI |
-| `data/offline_v15.xml` | Karoo 3 render theme (shared by both maps) |
+| `data/offline_v15.xml` | Karoo 3 render theme (shared by both maps); pushed as the detected `offline_vXXX.xml` on device |
 | `data/<region>-mtb-overlay.map` | Built overlay maps (gitignored) |
 | `tag-mapping-mtb.xml` | Reference tag-mapping |

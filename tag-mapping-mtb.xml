@@ -65,6 +65,9 @@
   <osm-tag key="network"  value="ncn" zoom-appear="11" renderable="false" />
   <osm-tag key="route"    value="mtb" zoom-appear="13" />
 
+  <!-- ====== NATURAL FEATURES ====== -->
+  <osm-tag key="natural"  value="bare_rock"  zoom-appear="12" />
+
   <!-- ====== CONTOUR (if added later) ====== -->
   <osm-tag key="contour"  value="elevation" zoom-appear="14" />
   <osm-tag key="ele"      zoom-appear="14" renderable="false" />

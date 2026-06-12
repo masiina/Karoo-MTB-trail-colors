@@ -135,6 +135,10 @@
         <!-- End landuse, natural, leisure, tourism, amenity areas -->
     </m> <!--- End of closed ways -->
 
+    <m k="natural" v="rock|bare_rock|stone|scree|glacier|cliff">
+        <area mesh="true" fill="#cccccc"/>
+    </m>
+
     <!-- Waterways (rivers, streams, etc.) -->
     <m e="way" k="waterway">
         <m v="ditch|drain" zoom-min="14">

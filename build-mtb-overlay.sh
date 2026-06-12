@@ -15,7 +15,7 @@
 #
 # The script will:
 #   1. Download OSM data from Geofabrik (if not cached)
-#   2. Filter to only ways with mtb:scale=* tags
+#   2. Filter to only ways with mtb:scale=* tags and natural=bare_rock areas
 #   3. Build a Mapsforge .map file using the merged default+MTB tag-mapping
 #   4. Optionally push the map to a connected Karoo device via ADB
 #
@@ -23,8 +23,8 @@
 #   ./build-mtb-overlay.sh                          # Build for Finland (default)
 #   ./build-mtb-overlay.sh germany                  # Build for Germany
 #   ./build-mtb-overlay.sh --download finland        # Download fresh data first
-#   ./build-mtb-overlay.sh --push finland            # Build and push to Karoo
-#   ./build-mtb-overlay.sh --push-only finland       # Push existing map only
+#   ./build-mtb-overlay.sh --push finland            # Build and push to Karoo (reboots device)
+#   ./build-mtb-overlay.sh --push-only finland       # Push existing map and reboot
 #
 # Output: data/<name>-mtb-overlay.map
 #
@@ -108,8 +108,8 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  --download, -d   Force re-download OSM data even if cached"
-            echo "  --push, -p       Push map to Karoo device via ADB after build"
-            echo "  --push-only      Push existing map to Karoo (skip build)"
+            echo "  --push, -p       Push map to Karoo device via ADB after build (reboots device)"
+            echo "  --push-only      Push existing map to Karoo and reboot (skip build)"
             echo "  --help, -h       Show this help"
             exit 0
             ;;
@@ -353,6 +353,10 @@ ensure_theme_file() {
         </m>
         <!-- End landuse, natural, leisure, tourism, amenity areas -->
     </m> <!--- End of closed ways -->
+
+    <m k="natural" v="rock|bare_rock|stone|scree|glacier|cliff">
+        <area mesh="true" fill="#cccccc"/>
+    </m>
 
     <!-- Waterways (rivers, streams, etc.) -->
     <m e="way" k="waterway">
@@ -1047,6 +1051,7 @@ generate_tag_mapping() {
         <osm-tag key="mtb:scale:imba" value="2" zoom-appear="12" renderable="false"/>\
         <osm-tag key="mtb:scale:imba" value="3" zoom-appear="12" renderable="false"/>\
         <osm-tag key="mtb:scale:imba" value="4" zoom-appear="12" renderable="false"/>\
+        <osm-tag key="natural" value="bare_rock" zoom-appear="12"/>\
 ' "${TAG_MAPPING}"
 
     echo "Tag-mapping generated: ${TAG_MAPPING}"
@@ -1087,11 +1092,11 @@ if [[ "$PUSH_ONLY" != "true" ]]; then
 
 if [[ ! -f "${FILTERED_PBF}" ]] || [[ "${INPUT_PBF}" -nt "${FILTERED_PBF}" ]]; then
     echo ""
-    echo "--- Filtering to mtb:scale ways ---"
+    echo "--- Filtering to mtb:scale ways and bare_rock areas ---"
 
     "${OSMOSIS_DIR}/bin/osmosis" \
         --rb file="${INPUT_PBF}" \
-        --tf accept-ways mtb:scale=* \
+        --tf accept-ways mtb:scale=* natural=bare_rock \
         --used-node \
         --wb file="${FILTERED_PBF}" omitmetadata=true
 
@@ -1123,7 +1128,7 @@ START_ARR=(${START//,/ })
 START_LAT="${START_ARR[0]}"
 START_LON="${START_ARR[1]}"
 
-JAVACMD_OPTIONS="-Xmx1g" "${OSMOSIS_DIR}/bin/osmosis" \
+JAVACMD_OPTIONS="-Xmx2g" "${OSMOSIS_DIR}/bin/osmosis" \
     --rb file="${FILTERED_PBF}" \
     --mw file="${OUTPUT_FILE}" \
          bbox="${BOTTOM},${LEFT},${TOP},${RIGHT}" \
@@ -1154,7 +1159,7 @@ echo "  2. Add ${MAP_NAME}-mtb-overlay.map as overlay map alongside your base ma
 echo "  3. Use offline_v15.xml as the shared theme for both maps"
 echo "  4. Enable both maps simultaneously"
 echo ""
-echo "Or use --push to push directly via ADB:"
+echo "Or use --push to push directly via ADB (reboots device):"
 echo "  $0 --push ${REGION}"
 
 fi # end PUSH_ONLY skip block
@@ -1227,18 +1232,23 @@ detect_karoo_maps_path() {
     return 0
 }
 
-detect_karoo_theme_path() {
+detect_karoo_theme_info() {
     local adb_cmd="$1"
     local paths=("/sdcard" "/mnt/sdcard" "/storage/emulated/0")
 
     for path in "${paths[@]}"; do
-        if "$adb_cmd" shell "ls '${path}/offline_v15.xml'" &>/dev/null; then
-            echo "$path"
+        # Look for any offline_v*.xml file in this path
+        local found
+        found=$("$adb_cmd" shell "ls '${path}/offline_v'*.xml 2>/dev/null" 2>/dev/null | head -1 | tr -d '\r')
+        if [[ -n "$found" ]]; then
+            local filename
+            filename=$(basename "$found")
+            echo "$path $filename"
             return 0
         fi
     done
 
-    echo "/sdcard"
+    echo "/sdcard offline_v15.xml"
     return 0
 }
 
@@ -1287,11 +1297,11 @@ push_to_karoo() {
 
     # Detect Karoo storage paths
     echo "Detecting Karoo storage paths..."
-    local maps_path theme_path_base
+    local maps_path theme_path_base theme_filename
     maps_path=$(detect_karoo_maps_path "$adb_cmd")
-    theme_path_base=$(detect_karoo_theme_path "$adb_cmd")
+    read -r theme_path_base theme_filename <<< "$(detect_karoo_theme_info "$adb_cmd")"
     echo "  Maps path:  $maps_path"
-    echo "  Theme path: ${theme_path_base}/offline_v15.xml"
+    echo "  Theme path: ${theme_path_base}/${theme_filename}"
 
     # Ensure target directory exists
     "$adb_cmd" shell "mkdir -p '$maps_path'" 2>/dev/null || true
@@ -1308,12 +1318,12 @@ push_to_karoo() {
     local theme_file="${DATA_DIR}/offline_v15.xml"
     if [[ -f "$theme_file" ]]; then
         echo "Pushing theme file..."
-        "$adb_cmd" shell "cp '${theme_path_base}/offline_v15.xml' '${theme_path_base}/offline_v15.xml.bak'" 2>/dev/null || true
-        if "$adb_cmd" push "$theme_file" "${theme_path_base}/offline_v15.xml"; then
+        "$adb_cmd" shell "cp '${theme_path_base}/${theme_filename}' '${theme_path_base}/${theme_filename}.bak'" 2>/dev/null && echo "  Backed up existing theme: ${theme_filename}.bak" || echo "  NOTE: Could not back up existing theme (may not exist yet)"
+        if "$adb_cmd" push "$theme_file" "${theme_path_base}/${theme_filename}"; then
             echo "Theme file pushed successfully."
         else
             echo "WARNING: Failed to push theme file. Push manually:"
-            echo "  $adb_cmd push offline_v15.xml ${theme_path_base}/offline_v15.xml"
+            echo "  $adb_cmd push offline_v15.xml ${theme_path_base}/${theme_filename}"
         fi
     else
         echo "NOTE: No offline_v15.xml found in data/. Place the theme file there to push it."
@@ -1322,10 +1332,9 @@ push_to_karoo() {
     echo ""
     echo "=== Push complete ==="
     echo ""
-    echo "On the Karoo:"
-    echo "  1. Reopen the map screen"
-    echo "  2. The overlay map should appear as a layer"
-    echo "  3. Enable both base map and overlay map"
+    echo "Rebooting Karoo to reload map data..."
+    "$adb_cmd" reboot
+    echo "Device is rebooting. The overlay map will be available after restart."
     echo ""
 }
 

@@ -395,6 +395,10 @@ ensure_theme_file() {
         <!-- End landuse, natural, leisure, tourism, amenity areas -->
     </m> <!--- End of closed ways -->
 
+    <m k="natural" v="rock|bare_rock|stone|scree|glacier|cliff">
+        <area mesh="true" fill="#cccccc"/>
+    </m>
+
     <!-- Waterways (rivers, streams, etc.) -->
     <m e="way" k="waterway">
         <m v="ditch|drain" zoom-min="14">
@@ -1089,6 +1093,7 @@ generate_tag_mapping() {
         <osm-tag key="mtb:scale:imba" value="2" zoom-appear="12" renderable="false"/>\
         <osm-tag key="mtb:scale:imba" value="3" zoom-appear="12" renderable="false"/>\
         <osm-tag key="mtb:scale:imba" value="4" zoom-appear="12" renderable="false"/>\
+        <osm-tag key="natural" value="bare_rock" zoom-appear="12"/>\
 ' "${TAG_MAPPING}"
 
     log_ok "Tag-mapping generated"
@@ -1141,11 +1146,11 @@ build_map() {
 
     # --- Filter ---
     if [[ ! -f "${filtered_pbf}" ]] || [[ "${input_pbf}" -nt "${filtered_pbf}" ]]; then
-        log_step "Filtering to mtb:scale ways"
+        log_step "Filtering to mtb:scale ways and bare_rock areas"
 
         "${OSMOSIS_DIR}/bin/osmosis" \
             --rb file="${input_pbf}" \
-            --tf accept-ways mtb:scale=* \
+            --tf accept-ways mtb:scale=* natural=bare_rock \
             --used-node \
             --wb file="${filtered_pbf}" omitmetadata=true 2>&1 | tail -5
 
@@ -1167,7 +1172,7 @@ build_map() {
     IFS=',' read -ra start_arr <<< "$start"
     local start_lat="${start_arr[0]}" start_lon="${start_arr[1]}"
 
-    JAVACMD_OPTIONS="-Xmx1g" "${OSMOSIS_DIR}/bin/osmosis" \
+    JAVACMD_OPTIONS="-Xmx2g" "${OSMOSIS_DIR}/bin/osmosis" \
         --rb file="${filtered_pbf}" \
         --mw file="${output_map}" \
              bbox="${bottom},${left},${top},${right}" \
@@ -1469,18 +1474,23 @@ detect_karoo_maps_path() {
     return 0
 }
 
-detect_karoo_theme_path() {
+detect_karoo_theme_info() {
     local adb_cmd="$1"
     local paths=("/sdcard" "/mnt/sdcard" "/storage/emulated/0")
 
     for path in "${paths[@]}"; do
-        if "$adb_cmd" shell "ls '${path}/offline_v15.xml'" &>/dev/null; then
-            echo "$path"
+        # Look for any offline_v*.xml file in this path
+        local found
+        found=$("$adb_cmd" shell "ls '${path}/offline_v'*.xml 2>/dev/null" 2>/dev/null | head -1 | tr -d '\r')
+        if [[ -n "$found" ]]; then
+            local filename
+            filename=$(basename "$found")
+            echo "$path $filename"
             return 0
         fi
     done
 
-    echo "/sdcard"
+    echo "/sdcard offline_v15.xml"
     return 0
 }
 
@@ -1524,11 +1534,11 @@ do_push_to_karoo() {
 
     # Detect Karoo storage paths
     log_info "Detecting Karoo storage paths..."
-    local maps_path theme_path_base
+    local maps_path theme_path_base theme_filename
     maps_path=$(detect_karoo_maps_path "$adb_cmd") || maps_path="/sdcard/offline/maps"
-    theme_path_base=$(detect_karoo_theme_path "$adb_cmd") || theme_path_base="/sdcard"
+    read -r theme_path_base theme_filename <<< "$(detect_karoo_theme_info "$adb_cmd")"
     log_ok "Maps path: $maps_path"
-    log_ok "Theme path: ${theme_path_base}/offline_v15.xml"
+    log_ok "Theme path: ${theme_path_base}/${theme_filename}"
 
     # Find map files to push
     local map_files=()
@@ -1552,7 +1562,7 @@ do_push_to_karoo() {
         region="${map_files[0]}"
     else
         local choice
-        choice=$(wt_menu "Push to Karoo" \
+        choice=$(wt_menu "Push to Karoo & Reboot" \
             "Select which overlay map to push:" \
             15 60 6 "${map_files[@]}")
         if [[ -z "$choice" ]]; then
@@ -1569,13 +1579,13 @@ do_push_to_karoo() {
     local theme_file="${DATA_DIR}/offline_v15.xml"
     local theme_msg=""
     if [[ -f "$theme_file" ]]; then
-        theme_msg="\n\nTheme file found: offline_v15.xml\nIt will also be pushed."
+        theme_msg="\n\nTheme file found: offline_v15.xml\nIt will be pushed as ${theme_filename} on the device."
     else
         theme_msg="\n\nNo offline_v15.xml found in data/ folder.\nYou will need to push the theme manually."
     fi
 
-    if ! wt_yesno "Push to Karoo" \
-        "Push the following to the Karoo?\n\n  Map:   ${region}-mtb-overlay.map ($map_size)\n  Path:  ${maps_path}/${region}-mtb-overlay.map${theme_msg}\n\nImportant: Do NOT overwrite existing Hammerhead base maps.\nThe overlay uses a different filename, so it's safe."; then
+    if ! wt_yesno "Push to Karoo & Reboot" \
+        "Push the following to the Karoo and reboot?\n\n  Map:   ${region}-mtb-overlay.map ($map_size)\n  Path:  ${maps_path}/${region}-mtb-overlay.map${theme_msg}\n\nImportant: Do NOT overwrite existing Hammerhead base maps.\nThe overlay uses a different filename, so it's safe.\n\nThe device will reboot after push to reload map data."; then
         return 0
     fi
 
@@ -1597,17 +1607,21 @@ do_push_to_karoo() {
     if [[ -f "$theme_file" ]]; then
         log_step "Pushing theme file to Karoo"
         # Backup existing theme on device first
-        "$adb_cmd" shell "cp '${theme_path_base}/offline_v15.xml' '${theme_path_base}/offline_v15.xml.bak'" 2>/dev/null || true
-        if ! "$adb_cmd" push "$theme_file" "${theme_path_base}/offline_v15.xml"; then
+        "$adb_cmd" shell "cp '${theme_path_base}/${theme_filename}' '${theme_path_base}/${theme_filename}.bak'" 2>/dev/null && log_ok "Backed up existing theme: ${theme_filename}.bak" || log_info "Could not back up existing theme (may not exist yet)"
+        if ! "$adb_cmd" push "$theme_file" "${theme_path_base}/${theme_filename}"; then
             wt_msgbox "Theme Push Failed" \
-                "Map was pushed but theme push failed.\n\nTry pushing manually:\n  adb push data/offline_v15.xml ${theme_path_base}/offline_v15.xml" 12 60
+                "Map was pushed but theme push failed.\n\nTry pushing manually:\n  adb push data/offline_v15.xml ${theme_path_base}/${theme_filename}" 12 60
             return 1
         fi
         log_ok "Theme file pushed successfully"
     fi
 
+    log_step "Rebooting Karoo to reload map data"
+    "$adb_cmd" reboot
+    log_ok "Device is rebooting"
+
     wt_msgbox "Push Complete" \
-        "Files pushed to Karoo successfully!\n\nOn the Karoo:\n  1. Reopen the map screen\n  2. The overlay map should appear as a layer\n  3. Enable both base map and overlay map\n\nNote: A device restart is NOT required." 15 60
+        "Files pushed to Karoo successfully!\n\nRebooting device to reload map data...\nThe overlay map will be available after restart." 10 60
 
     return 0
 }
@@ -1640,7 +1654,7 @@ main_menu() {
         choice=$(wt_menu "$APP_NAME" "$msg" 20 65 5 \
             "1" "Select country & build overlay map" \
             "2" "Re-build from cached data" \
-            "3" "Push map to Karoo device" \
+            "3" "Push map to Karoo & reboot device" \
             "4" "Delete cached PBF data" \
             "5" "Exit")
 

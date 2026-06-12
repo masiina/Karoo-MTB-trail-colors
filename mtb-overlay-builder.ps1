@@ -335,6 +335,10 @@ function Ensure-ThemeFile {
         <!-- End landuse, natural, leisure, tourism, amenity areas -->
     </m> <!--- End of closed ways -->
 
+    <m k="natural" v="rock|bare_rock|stone|scree|glacier|cliff">
+        <area mesh="true" fill="#cccccc"/>
+    </m>
+
     <!-- Waterways (rivers, streams, etc.) -->
     <m e="way" k="waterway">
         <m v="ditch|drain" zoom-min="14">
@@ -1413,6 +1417,7 @@ function Invoke-BuildPipeline {
         <osm-tag key="mtb:scale:imba" value="2" zoom-appear="12" renderable="false"/>
         <osm-tag key="mtb:scale:imba" value="3" zoom-appear="12" renderable="false"/>
         <osm-tag key="mtb:scale:imba" value="4" zoom-appear="12" renderable="false"/>
+        <osm-tag key="natural" value="bare_rock" zoom-appear="12"/>
 '@
         $content = $content -replace '</ways>', "$mtbTags`n        </ways>"
         # Add version marker so we can detect stale merged files
@@ -1445,10 +1450,10 @@ function Invoke-BuildPipeline {
     Add-Log "  [OK] Step 3/5 complete"
 
     # ----------------------------------------------------------
-    # 4. Filter to mtb:scale ways
+    # 4. Filter to mtb:scale ways and bare_rock areas
     # ----------------------------------------------------------
     Add-Log ''
-    Add-Log "=== Step 4/5: Filtering to mtb:scale ways ==="
+    Add-Log '=== Step 4/5: Filtering to mtb:scale ways and bare_rock areas ==='
 
     if ((Test-Path $filteredPbf) -and ((Get-Item $filteredPbf).LastWriteTime -gt (Get-Item $inputPbf).LastWriteTime)) {
         $size = (Get-Item $filteredPbf).Length
@@ -1457,7 +1462,7 @@ function Invoke-BuildPipeline {
     } else {
         Add-Log '  Running Osmosis filter...'
         Set-Status 'Filtering OSM data...'
-        $exitCode = Invoke-Process -FileName $osmosisBat -Arguments "--rb file=`"$inputPbf`" --tf accept-ways mtb:scale=* --used-node --wb file=`"$filteredPbf`" omitmetadata=true" -TimeoutMs 600000 -StatusPrefix 'Filtering OSM data...'
+        $exitCode = Invoke-Process -FileName $osmosisBat -Arguments "--rb file=`"$inputPbf`" --tf accept-ways mtb:scale=* natural=bare_rock --used-node --wb file=`"$filteredPbf`" omitmetadata=true" -TimeoutMs 600000 -StatusPrefix 'Filtering OSM data...'
         if ($exitCode -ne 0) {
             Add-Log "  ERROR: Osmosis filter failed with exit code $exitCode"
             throw "Osmosis filter failed"
@@ -1498,7 +1503,7 @@ function Invoke-BuildPipeline {
     # Set JVM heap for type=ram (needs ~10x filtered PBF size in memory;
     # 1 GB is plenty for typical filtered MTB data of 10-20 MB)
     $oldJavacmdOpts = $env:JAVACMD_OPTIONS
-    $env:JAVACMD_OPTIONS = '-Xmx1g'
+    $env:JAVACMD_OPTIONS = '-Xmx2g'
     $osmosisArgs = "--rb file=`"$filteredPbf`" --mw file=`"$outputMap`" bbox=$bottom,$left,$top,$right map-start-position=$startLat,$startLon map-start-zoom=10 tag-values=false type=ram preferred-languages=en,fi threads=$cpuCount tag-conf-file=`"$tagMappingMerged`" progress-logs=true zoom-interval-conf=5,0,7,10,8,11,14,12,21"
     $exitCode = Invoke-Process -FileName $osmosisBat -Arguments $osmosisArgs -TimeoutMs 600000 -StatusPrefix 'Building map...'
     $env:JAVACMD_OPTIONS = $oldJavacmdOpts
@@ -1526,7 +1531,7 @@ function Invoke-BuildPipeline {
     Add-Log "Output: $outputMap"
     Add-Log ''
     Add-Log 'To use on Karoo:'
-    Add-Log '  1. Click "Push to Karoo" to push via ADB'
+    Add-Log '  1. Click "Push to Karoo & Reboot" to push via ADB'
     Add-Log '  2. Or copy files from data/ to the Karoo'
     Add-Log '  3. Add as overlay map in the Karoo map settings'
 }
@@ -1608,19 +1613,26 @@ function Invoke-PushPipeline {
         Add-Log "  Using default maps path: $mapsPath"
     }
 
-    # Detect theme base path
+    # Detect theme base path and actual offline_v*.xml filename on device
+    $themeBase = $null
+    $themeFilename = 'offline_v15.xml'  # default fallback
     $themeCandidates = @('/sdcard', '/mnt/sdcard', '/storage/emulated/0')
     foreach ($p in $themeCandidates) {
-        $result = & $adb shell "ls ${p}/offline_v15.xml" 2>&1
+        $result = & $adb shell "ls ${p}/offline_v*.xml" 2>&1
         if ($LASTEXITCODE -eq 0) {
             $themeBase = $p
-            Add-Log "  Found theme base: $themeBase"
+            # Extract the actual filename from the ls output
+            $matched = $result | Where-Object { $_ -match 'offline_v\d+\.xml' } | Select-Object -First 1
+            if ($matched) {
+                $themeFilename = ($matched -split '/')[-1].Trim()
+            }
+            Add-Log "  Found theme: ${themeBase}/${themeFilename}"
             break
         }
     }
     if (-not $themeBase) {
         $themeBase = '/sdcard'
-        Add-Log "  Using default theme base: $themeBase"
+        Add-Log "  Using default theme base: $themeBase (theme filename: $themeFilename)"
     }
 
     # 4. Ensure target directory exists
@@ -1643,8 +1655,13 @@ function Invoke-PushPipeline {
         Add-Log 'Pushing theme file...'
         Set-Status 'Pushing theme...'
         # Backup existing theme
-        & $adb shell "cp ${themeBase}/offline_v15.xml ${themeBase}/offline_v15.xml.bak" 2>&1 | Out-Null
-        $pushResult = & $adb push $themeFile "${themeBase}/offline_v15.xml" 2>&1
+        $bakResult = & $adb shell "cp ${themeBase}/${themeFilename} ${themeBase}/${themeFilename}.bak" 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Add-Log "  Backed up existing theme: ${themeBase}/${themeFilename}.bak"
+        } else {
+            Add-Log "  NOTE: Could not back up existing theme (may not exist yet): $bakResult"
+        }
+        $pushResult = & $adb push $themeFile "${themeBase}/${themeFilename}" 2>&1
         Add-Log "  $pushResult"
         if ($LASTEXITCODE -ne 0) {
             Add-Log '  WARNING: Failed to push theme file.'
@@ -1652,16 +1669,15 @@ function Invoke-PushPipeline {
             Add-Log 'Theme file pushed successfully.'
         }
     } else {
-        Add-Log 'NOTE: No offline_v15.xml found in data/ folder. Place the theme file there to push it.'
+        Add-Log "NOTE: No offline_v15.xml found in data/ folder. Place the theme file there to push it (will be pushed as ${themeFilename} on device)."
     }
 
     Add-Log ''
     Add-Log '=== Push complete! ==='
     Add-Log ''
-    Add-Log 'On the Karoo:'
-    Add-Log '  1. Reopen the map screen'
-    Add-Log '  2. The overlay map should appear as a layer'
-    Add-Log '  3. Enable both base map and overlay map'
+    Add-Log 'Rebooting Karoo to reload map data...'
+    & $adb reboot 2>&1 | Out-Null
+    Add-Log 'Device is rebooting. The overlay map will be available after restart.'
 }
 
 # ============================================================
@@ -1713,17 +1729,17 @@ function Build-UI {
     $buildBtn.Text = '  Build Map  '
     $buildBtn.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
     $buildBtn.Size = New-Object System.Drawing.Size(130, 34)
-    $buildBtn.Location = New-Object System.Drawing.Point(110, 95)
+    $buildBtn.Location = New-Object System.Drawing.Point(60, 95)
     $buildBtn.Anchor = 'Top'
     $buildBtn.UseVisualStyleBackColor = $true
     $buildBtn.Enabled = $false  # Enabled after prereq check
     $form.Controls.Add($buildBtn)
 
     $script:pushBtn = New-Object System.Windows.Forms.Button
-    $pushBtn.Text = '  Push to Karoo  '
+    $pushBtn.Text = '  Push to Karoo && Reboot  '
     $pushBtn.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
-    $pushBtn.Size = New-Object System.Drawing.Size(140, 34)
-    $pushBtn.Location = New-Object System.Drawing.Point(250, 95)
+    $pushBtn.Size = New-Object System.Drawing.Size(185, 34)
+    $pushBtn.Location = New-Object System.Drawing.Point(200, 95)
     $pushBtn.Anchor = 'Top'
     $pushBtn.UseVisualStyleBackColor = $true
     $pushBtn.Enabled = $false  # Enabled after prereq check + map exists check
@@ -1731,9 +1747,9 @@ function Build-UI {
 
     $script:refreshBtn = New-Object System.Windows.Forms.Button
     $refreshBtn.Text = ' Delete Cached Data '
-    $refreshBtn.Font = New-Object System.Drawing.Font('Segoe UI', 9)
-    $refreshBtn.Size = New-Object System.Drawing.Size(110, 34)
-    $refreshBtn.Location = New-Object System.Drawing.Point(400, 95)
+    $refreshBtn.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
+$refreshBtn.Size = New-Object System.Drawing.Size(150, 34)
+$refreshBtn.Location = New-Object System.Drawing.Point(395, 95)
     $refreshBtn.Anchor = 'Top'
     $refreshBtn.UseVisualStyleBackColor = $true
     $refreshBtn.Enabled = $false  # Enabled after prereq check
@@ -2002,7 +2018,7 @@ $countryCombo.Add_SelectedIndexChanged({
 # ---- RUN ----
 $form.Add_Shown({
     $logBox.AppendText("Welcome! Select a country and click 'Build Map' to start.`r`n")
-    $logBox.AppendText("Or click 'Push to Karoo' to push an existing map to your device.`r`n")
+    $logBox.AppendText("Or click 'Push to Karoo & Reboot' to push an existing map to your device.`r`n")
     $logBox.AppendText("Click 'Delete Cached Data' to discard cached OSM data and re-download on next build.`r`n")
     $logBox.ScrollToCaret()
 })
