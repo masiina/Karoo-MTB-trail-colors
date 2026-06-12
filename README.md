@@ -70,7 +70,7 @@ All scripts support pushing to a Karoo device via ADB:
 1. Detects the Karoo's storage path (`/sdcard/offline/maps/`)
 2. Detects the actual `offline_vXXX.xml` theme filename on the device (e.g., `offline_v15.xml`, `offline_v16.xml`)
 3. Backs up the existing theme file as `<filename>.bak`
-4. Pushes the `.map` file and the theme file (using the detected device filename)
+4. Pushes the `.map` file, theme file, and icon assets (using the detected device filename)
 5. Reboots the device so the new map data is loaded
 
 On Windows, ADB is auto-downloaded if missing. On Linux, install it separately (`sudo apt install adb`).
@@ -116,6 +116,6 @@ Cached tools are stored in `build-tools/`. PBF data files are also cached there.
 | `build-mtb-overlay.sh` | Linux CLI with push support |
 | `build-mtb-tui.sh` | Linux interactive TUI |
 | `data/offline_v15.xml` | Karoo 3 render theme (shared by both maps); pushed as the detected `offline_vXXX.xml` on device |
-| `data/patterns/bare_rock.svg` | Tiled rock-pattern overlay for bare_rock areas |
+| `data/icons/bare_rock.svg` | Tiled rock-pattern overlay for bare_rock areas |
 | `data/<region>-mtb-overlay.map` | Built overlay maps (gitignored) |
 | `tag-mapping-mtb.xml` | Reference tag-mapping |

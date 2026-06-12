@@ -356,7 +356,7 @@ ensure_theme_file() {
 
     <m k="natural" v="rock|bare_rock|stone|scree|glacier|cliff">
         <area mesh="true" fill="#d5c8af" stroke="#8b7355" stroke-width="0.3"/>
-        <area src="file:/patterns/bare_rock.svg" symbol-height="64" symbol-width="64"/>
+        <area src="file:/icons/bare_rock.svg" symbol-height="64" symbol-width="64"/>
     </m>
 
     <!-- Waterways (rivers, streams, etc.) -->
@@ -1330,15 +1330,15 @@ push_to_karoo() {
         echo "NOTE: No offline_v15.xml found in data/. Place the theme file there to push it."
     fi
 
-    # Push pattern assets if available
-    local patterns_dir="${DATA_DIR}/patterns"
-    if [[ -d "$patterns_dir" ]]; then
-        echo "Pushing pattern assets..."
-        "$adb_cmd" shell "mkdir -p '${theme_path_base}/patterns'" 2>/dev/null
-        if "$adb_cmd" push "$patterns_dir/" "${theme_path_base}/patterns/"; then
-            echo "Pattern assets pushed successfully."
+    # Push icon/pattern assets if available
+    local icons_dir="${DATA_DIR}/icons"
+    if [[ -d "$icons_dir" ]]; then
+        echo "Pushing icon assets..."
+        "$adb_cmd" shell "mkdir -p '${theme_path_base}/icons'" 2>/dev/null
+        if "$adb_cmd" push "$icons_dir/" "${theme_path_base}/icons/"; then
+            echo "Icon assets pushed successfully."
         else
-            echo "WARNING: Failed to push pattern assets."
+            echo "WARNING: Failed to push icon assets."
         fi
     fi
 

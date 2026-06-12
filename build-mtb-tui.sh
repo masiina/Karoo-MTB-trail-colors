@@ -397,7 +397,7 @@ ensure_theme_file() {
 
     <m k="natural" v="rock|bare_rock|stone|scree|glacier|cliff">
         <area mesh="true" fill="#d5c8af" stroke="#8b7355" stroke-width="0.3"/>
-        <area src="file:/patterns/bare_rock.svg" symbol-height="64" symbol-width="64"/>
+        <area src="file:/icons/bare_rock.svg" symbol-height="64" symbol-width="64"/>
     </m>
 
     <!-- Waterways (rivers, streams, etc.) -->
@@ -1617,15 +1617,15 @@ do_push_to_karoo() {
         log_ok "Theme file pushed successfully"
     fi
 
-    # Push pattern assets if available
-    local patterns_dir="${DATA_DIR}/patterns"
-    if [[ -d "$patterns_dir" ]]; then
-        log_step "Pushing pattern assets to Karoo"
-        "$adb_cmd" shell "mkdir -p '${theme_path_base}/patterns'" 2>/dev/null
-        if "$adb_cmd" push "$patterns_dir/" "${theme_path_base}/patterns/"; then
-            log_ok "Pattern assets pushed successfully"
+    # Push icon/pattern assets if available
+    local icons_dir="${DATA_DIR}/icons"
+    if [[ -d "$icons_dir" ]]; then
+        log_step "Pushing icon assets to Karoo"
+        "$adb_cmd" shell "mkdir -p '${theme_path_base}/icons'" 2>/dev/null
+        if "$adb_cmd" push "$icons_dir/" "${theme_path_base}/icons/"; then
+            log_ok "Icon assets pushed successfully"
         else
-            log_info "Could not push pattern assets"
+            log_info "Could not push icon assets"
         fi
     fi
 
