@@ -136,7 +136,7 @@
     </m> <!--- End of closed ways -->
 
     <m k="natural" v="rock|bare_rock|stone|scree|glacier|cliff">
-        <area mesh="true" fill="#cccccc"/>
+        <area mesh="true" fill="#d5c8af" stroke="#8b7355" stroke-width="0.3"/>
     </m>
 
     <!-- Waterways (rivers, streams, etc.) -->

@@ -21,7 +21,7 @@ Each trail renders as a solid color casing (width 0.9) with a dashed black cente
 
 ### Bare Rock / Bedrock
 
-The overlay also includes `natural=bare_rock` areas, shown as gray filled polygons (`#cccccc`). These highlight exposed bedrock and rocky terrain that is relevant for MTB route planning.
+The overlay also includes `natural=bare_rock` areas, shown as sandy-brown filled polygons (`#d5c8af`) with a dark brown outline (`#8b7355`, 0.3px). These highlight exposed bedrock and rocky terrain that is relevant for MTB route planning.
 
 ## Supported Regions
 
