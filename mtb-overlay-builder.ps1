@@ -265,7 +265,7 @@ function Ensure-ThemeFile {
             <area mesh="true" fill="#d4d4d4"/>
         </m>
         <m v="farm|farmyard|farmland|orchard|vineyard">
-            <area mesh="true" fill="#a7c28f"/>
+            <area mesh="true" fill="#E0d9A5"/>
         </m>
         <m v="quarry">
             <area mesh="true" fill="#b8b1ad"/>
