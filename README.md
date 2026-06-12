@@ -17,6 +17,10 @@ Produces an overlay map containing ways with `mtb:scale` tags and `natural=bare_
 | S4 | 🔴 Red `#DD0000` | Extreme |
 | S5 | 🔴 Red `#DD0000` | Extreme |
 
+### Bare Rock / Bedrock
+
+The overlay also includes `natural=bare_rock` areas, shown as gray filled polygons (`#cccccc`). These highlight exposed bedrock and rocky terrain that is relevant for MTB route planning.
+
 Each trail renders as a solid color casing (width 0.9) with a dashed black center line (width 0.4, dasharray 5,6).
 
 ## Supported Regions
