@@ -330,6 +330,7 @@ function Ensure-ThemeFile {
     </m>
     <!-- End landuse, natural, leisure, tourism, amenity areas -->
 
+    <!-- Overlay map areas (must be last area layer so overlay draws on top) -->
     <m k="natural" v="rock|bare_rock|stone|scree|glacier|cliff">
         <area mesh="true" fill="#d5c8af" stroke="#8b7355" stroke-width="0.3"/>
         <area src="file:/icons/bare_rock.svg" symbol-height="64" symbol-width="64"/>
