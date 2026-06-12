@@ -50,90 +50,88 @@
         <area mesh="true" fill="#dcd5d0"/>
     </m>
 
-    <!-- Closed ways (except highways and buildings --> 
-    <m closed="yes" e="way" k="highway|building" v="~">
-        <m k="landuse">
-            <m v="meadow">
-                <area mesh="true" fill="#bfe0ad"/>
-            </m>
-            <m v="residential">
-                <area mesh="true" fill="#c2c2bc"/>
-            </m>
-            <m v="allotments">
-                <area mesh="true" fill="#cfac7c"/>
-            </m>
-            <m v="commercial|retail">
-                <area mesh="true" fill="#d4d4d4"/>
-            </m>
-            <m v="farm|farmyard|farmland|orchard|vineyard">
-                <area mesh="true" fill="#a7c28f"/>
-            </m>
-            <m v="quarry">
-                <area mesh="true" fill="#b8b1ad"/>
-            </m>
-            <m v="industrial|railway">
-                <area mesh="true" fill="#d4c3d6"/>
-            </m>
-            <m v="cemetery">
-                <area mesh="true" fill="#bdc7b3"/>
-            </m>
+    <!-- Land use, natural, leisure, amenity areas -->
+    <m k="landuse">
+        <m v="meadow">
+            <area mesh="true" fill="#bfe0ad"/>
         </m>
-        <m k="amenity">
-            <m v="kindergarten|school|college|university">
-                <area mesh="true" fill="#c2c180"/>
-                <line cap="butt" fix="true" stroke="#9aabae" width="1.0"/>
-            </m>
-            <m v="hospital">
-                <area mesh="true" fill="#d9c7ab"/>
-            </m>
+        <m v="residential">
+            <area mesh="true" fill="#c2c2bc"/>
         </m>
-        <m k="landuse">
-            <m v="recreation_ground">
-                <area mesh="true" fill="#9ac56e"/>
-            </m>
-            <m v="brownfield">
-                <area mesh="true" fill="#b9baad"/>
-            </m>
+        <m v="allotments">
+            <area mesh="true" fill="#cfac7c"/>
         </m>
-        <m k="leisure" v="park|common|green|golf_course|pitch">
+        <m v="commercial|retail">
+            <area mesh="true" fill="#d4d4d4"/>
+        </m>
+        <m v="farm|farmyard|farmland|orchard|vineyard">
+            <area mesh="true" fill="#a7c28f"/>
+        </m>
+        <m v="quarry">
+            <area mesh="true" fill="#b8b1ad"/>
+        </m>
+        <m v="industrial|railway">
+            <area mesh="true" fill="#d4c3d6"/>
+        </m>
+        <m v="cemetery">
+            <area mesh="true" fill="#bdc7b3"/>
+        </m>
+    </m>
+    <m k="amenity">
+        <m v="kindergarten|school|college|university">
+            <area mesh="true" fill="#c2c180"/>
+            <line cap="butt" fix="true" stroke="#9aabae" width="1.0"/>
+        </m>
+        <m v="hospital">
+            <area mesh="true" fill="#d9c7ab"/>
+        </m>
+    </m>
+    <m k="landuse">
+        <m v="recreation_ground">
             <area mesh="true" fill="#9ac56e"/>
         </m>
-        <m k="natural">
-            <m k="natural" v="grassland|scrub">
-                <area mesh="true" fill="#8ed496"/>
-            </m>
-            <m v="sand|beach">
-                <area mesh="true" fill="#f5e8d6"/>
-            </m>
-            <m v="rock|bare_rock|stone|scree|glacier|cliff">
-                <area mesh="true" fill="#cccccc"/>
-            </m>
+        <m v="brownfield">
+            <area mesh="true" fill="#b9baad"/>
         </m>
+    </m>
+    <m k="leisure" v="park|common|green|golf_course|pitch">
+        <area mesh="true" fill="#9ac56e"/>
+    </m>
+    <m k="natural">
+        <m k="natural" v="grassland|scrub">
+            <area mesh="true" fill="#8ed496"/>
+        </m>
+        <m v="sand|beach">
+            <area mesh="true" fill="#f5e8d6"/>
+        </m>
+        <m v="rock|bare_rock|stone|scree|glacier|cliff">
+            <area mesh="true" fill="#cccccc"/>
+        </m>
+    </m>
 
-        <m k="amenity" v="parking">
-            <area mesh="true" fill="#999999"/>
-        </m>
+    <m k="amenity" v="parking">
+        <area mesh="true" fill="#999999"/>
+    </m>
 
-        <m k="landuse|natural" v="forest|wood">
-            <area mesh="true" fill="#a8bc9a"/>
-        </m>
+    <m k="landuse|natural" v="forest|wood">
+        <area mesh="true" fill="#a8bc9a"/>
+    </m>
 
-        <!-- keep grass above forest:wood and leisure:park! -->
-        <!-- http://wiki.openstreetmap.org/wiki/Proposed_features/conservation,
-                often serves as background for leisure=nature_reserve -->
-        <m k="landuse" v="grass">
-            <area mesh="true" fill="#c4deab"/>
-        </m>
+    <!-- keep grass above forest:wood and leisure:park! -->
+    <!-- http://wiki.openstreetmap.org/wiki/Proposed_features/conservation,
+            often serves as background for leisure=nature_reserve -->
+    <m k="landuse" v="grass">
+        <area mesh="true" fill="#c4deab"/>
+    </m>
 
-        <m k="leisure" v="garden">
-            <area mesh="true" fill="#cce0b8"/>
-        </m>
+    <m k="leisure" v="garden">
+        <area mesh="true" fill="#cce0b8"/>
+    </m>
 
-        <m k="landuse" v="reservoir|basin">
-            <area use="water"/>
-        </m>
-        <!-- End landuse, natural, leisure, tourism, amenity areas -->
-    </m> <!--- End of closed ways -->
+    <m k="landuse" v="reservoir|basin">
+        <area use="water"/>
+    </m>
+    <!-- End landuse, natural, leisure, tourism, amenity areas -->
 
     <m k="natural" v="rock|bare_rock|stone|scree|glacier|cliff">
         <area mesh="true" fill="#d5c8af" stroke="#8b7355" stroke-width="0.3"/>
