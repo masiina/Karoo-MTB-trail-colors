@@ -964,6 +964,60 @@ THEME_EOF
     echo "Restored theme file: data/offline_v15.xml"
 }
 
+# ============================================================
+# ENSURE ICON ASSETS
+# ============================================================
+
+ensure_icon_assets() {
+    local icons_dir="${DATA_DIR}/icons"
+    local svg_file="${icons_dir}/bare_rock.svg"
+
+    if [[ -f "$svg_file" ]]; then
+        echo "Icon assets: data/icons/"
+        return 0
+    fi
+
+    echo "Icon assets not found. Restoring bare_rock.svg from embedded copy..."
+    mkdir -p "${icons_dir}"
+
+    cat > "$svg_file" << 'SVG_EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Bare rock/bedrock pattern - small scattered rock fragments -->
+  <!-- Transparent background so it layers over the area fill -->
+  <g fill="#8b7355" fill-opacity="0.6" stroke="none">
+    <!-- Row 1 -->
+    <ellipse cx="8" cy="6" rx="3" ry="2"/>
+    <ellipse cx="28" cy="4" rx="2.5" ry="1.8"/>
+    <ellipse cx="50" cy="8" rx="2" ry="1.5"/>
+    <!-- Row 2 -->
+    <ellipse cx="18" cy="18" rx="2.5" ry="1.8"/>
+    <ellipse cx="42" cy="16" rx="3" ry="2"/>
+    <!-- Row 3 -->
+    <ellipse cx="4" cy="30" rx="2" ry="1.5"/>
+    <ellipse cx="24" cy="28" rx="3.5" ry="2.2"/>
+    <ellipse cx="54" cy="32" rx="2.5" ry="1.8"/>
+    <!-- Row 4 -->
+    <ellipse cx="12" cy="42" rx="2.5" ry="2"/>
+    <ellipse cx="38" cy="40" rx="2" ry="1.5"/>
+    <!-- Row 5 -->
+    <ellipse cx="8" cy="54" rx="3" ry="2"/>
+    <ellipse cx="30" cy="52" rx="2.5" ry="1.8"/>
+    <ellipse cx="52" cy="56" rx="2" ry="1.5"/>
+    <!-- Scattered small dots -->
+    <circle cx="58" cy="20" r="1.2"/>
+    <circle cx="14" cy="10" r="1"/>
+    <circle cx="34" cy="46" r="1.3"/>
+    <circle cx="46" cy="48" r="1"/>
+    <circle cx="20" cy="56" r="1.1"/>
+    <circle cx="56" cy="44" r="0.9"/>
+  </g>
+</svg>
+SVG_EOF
+
+    echo "Restored icon asset: data/icons/bare_rock.svg"
+}
+
 build_osmosis() {
     if [[ -x "${OSMOSIS_DIR}/bin/osmosis" ]]; then
         echo "Osmosis already built at ${OSMOSIS_DIR}"
@@ -1000,6 +1054,7 @@ build_osmosis() {
 
 build_osmosis
 ensure_theme_file
+ensure_icon_assets
 
 # ============================================================
 # GENERATE MERGED TAG-MAPPING

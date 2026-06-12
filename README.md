@@ -92,9 +92,9 @@ All scripts auto-download their dependencies on first run (~71 MB total):
 
 Cached tools are stored in `build-tools/`. PBF data files are also cached there. Use **Delete Cached Data** (Windows) or option 4 (TUI) to free disk space while keeping tools.
 
-## Theme Auto-Restore
+## Theme & Asset Auto-Restore
 
-`offline_v15.xml` is embedded in all three scripts. If accidentally deleted from `data/`, it is automatically restored on the next run.
+`offline_v15.xml` and `icons/bare_rock.svg` are embedded in all three scripts. If accidentally deleted from `data/`, they are automatically restored on the next run.
 
 ## Build Configuration
 
