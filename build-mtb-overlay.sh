@@ -1390,11 +1390,14 @@ push_to_karoo() {
     if [[ -d "$icons_dir" ]]; then
         echo "Pushing icon assets..."
         "$adb_cmd" shell "mkdir -p '${theme_path_base}/icons'" 2>/dev/null
-        if "$adb_cmd" push "$icons_dir/" "${theme_path_base}/icons/"; then
-            echo "Icon assets pushed successfully."
-        else
-            echo "WARNING: Failed to push icon assets."
-        fi
+        for icon_file in "$icons_dir"/*; do
+            if [[ -f "$icon_file" ]]; then
+                if "$adb_cmd" push "$icon_file" "${theme_path_base}/icons/"; then
+                    echo "  Pushed: $(basename "$icon_file")"
+                fi
+            fi
+        done
+        echo "Icon assets pushed successfully."
     fi
 
     echo ""

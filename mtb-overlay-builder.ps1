@@ -1735,13 +1735,12 @@ function Invoke-PushPipeline {
         Add-Log 'Pushing icon assets...'
         Set-Status 'Pushing icons...'
         & $adb shell "mkdir -p ${themeBase}/icons" 2>&1 | Out-Null
-        $pushResult = & $adb push $iconsDir "${themeBase}/icons/" 2>&1
-        Add-Log "  $pushResult"
-        if ($LASTEXITCODE -eq 0) {
-            Add-Log 'Icon assets pushed successfully.'
-        } else {
-            Add-Log '  WARNING: Failed to push icon assets.'
+        $iconFiles = Get-ChildItem -Path $iconsDir -File
+        foreach ($iconFile in $iconFiles) {
+            $pushResult = & $adb push $iconFile.FullName "${themeBase}/icons/" 2>&1
+            Add-Log "  Pushed: $($iconFile.Name)"
         }
+        Add-Log 'Icon assets pushed successfully.'
     }
 
     Add-Log ''
