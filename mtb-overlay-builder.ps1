@@ -1588,7 +1588,7 @@ function Invoke-BuildPipeline {
     Add-Log "Output: $outputMap"
     Add-Log ''
     Add-Log 'To use on Karoo:'
-    Add-Log '  1. Click "Push to Karoo & Reboot" to push via ADB'
+    Add-Log '  1. Click "Push to Karoo" to push via ADB'
     Add-Log '  2. Or copy files from data/ to the Karoo'
     Add-Log '  3. Add as overlay map in the Karoo map settings'
 }
@@ -1747,9 +1747,8 @@ function Invoke-PushPipeline {
     Add-Log ''
     Add-Log '=== Push complete! ==='
     Add-Log ''
-    Add-Log 'Rebooting Karoo to reload map data...'
-    & $adb reboot 2>&1 | Out-Null
-    Add-Log 'Device is rebooting. The overlay map will be available after restart.'
+    Add-Log 'Please restart the Karoo to reload map data.'
+    Add-Log '  Hold power button -> Restart, or run: adb reboot'
 }
 
 # ============================================================
@@ -1808,9 +1807,9 @@ function Build-UI {
     $form.Controls.Add($buildBtn)
 
     $script:pushBtn = New-Object System.Windows.Forms.Button
-    $pushBtn.Text = '  Push to Karoo && Reboot  '
+    $pushBtn.Text = '  Push to Karoo  '
     $pushBtn.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
-    $pushBtn.Size = New-Object System.Drawing.Size(185, 34)
+    $pushBtn.Size = New-Object System.Drawing.Size(140, 34)
     $pushBtn.Location = New-Object System.Drawing.Point(200, 95)
     $pushBtn.Anchor = 'Top'
     $pushBtn.UseVisualStyleBackColor = $true
@@ -2091,7 +2090,7 @@ $countryCombo.Add_SelectedIndexChanged({
 # ---- RUN ----
 $form.Add_Shown({
     $logBox.AppendText("Welcome! Select a country and click 'Build Map' to start.`r`n")
-    $logBox.AppendText("Or click 'Push to Karoo & Reboot' to push an existing map to your device.`r`n")
+    $logBox.AppendText("Or click 'Push to Karoo' to push an existing map to your device.`r`n")
     $logBox.AppendText("Click 'Delete Cached Data' to discard cached OSM data and re-download on next build.`r`n")
     $logBox.ScrollToCaret()
 })

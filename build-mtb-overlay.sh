@@ -23,7 +23,7 @@
 #   ./build-mtb-overlay.sh                          # Build for Finland (default)
 #   ./build-mtb-overlay.sh germany                  # Build for Germany
 #   ./build-mtb-overlay.sh --download finland        # Download fresh data first
-#   ./build-mtb-overlay.sh --push finland            # Build and push to Karoo (reboots device)
+#   ./build-mtb-overlay.sh --push finland            # Build and push to Karoo (restart device after)
 #   ./build-mtb-overlay.sh --push-only finland       # Push existing map and reboot
 #
 # Output: data/<name>-mtb-overlay.map
@@ -108,7 +108,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  --download, -d   Force re-download OSM data even if cached"
-            echo "  --push, -p       Push map to Karoo device via ADB after build (reboots device)"
+            echo "  --push, -p       Push map to Karoo device via ADB after build (restart device after)"
             echo "  --push-only      Push existing map to Karoo and reboot (skip build)"
             echo "  --help, -h       Show this help"
             exit 0
@@ -1215,7 +1215,7 @@ echo "  2. Add ${MAP_NAME}-mtb-overlay.map as overlay map alongside your base ma
 echo "  3. Use offline_v15.xml as the shared theme for both maps"
 echo "  4. Enable both maps simultaneously"
 echo ""
-echo "Or use --push to push directly via ADB (reboots device):"
+echo "Or use --push to push directly via ADB (restart device after):"
 echo "  $0 --push ${REGION}"
 
 fi # end PUSH_ONLY skip block
@@ -1400,9 +1400,8 @@ push_to_karoo() {
     echo ""
     echo "=== Push complete ==="
     echo ""
-    echo "Rebooting Karoo to reload map data..."
-    "$adb_cmd" reboot
-    echo "Device is rebooting. The overlay map will be available after restart."
+    echo "Please restart the Karoo to reload map data."
+    echo "  (Hold power button → Restart, or: adb reboot)"
     echo ""
 }
 

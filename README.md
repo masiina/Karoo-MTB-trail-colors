@@ -39,7 +39,7 @@ Double-click **`MTB Overlay Builder.bat`** or run:
 powershell -ExecutionPolicy Bypass -File mtb-overlay-builder.ps1
 ```
 
-Select a country, click **Build Map**, then **Push to Karoo & Reboot**. Everything is auto-downloaded on first run.
+Select a country, click **Build Map**, then **Push to Karoo**. Everything is auto-downloaded on first run.
 
 ### Linux (CLI)
 
@@ -50,8 +50,8 @@ sudo apt install openjdk-17-jre osmium-tool curl
 ./build-mtb-overlay.sh                  # Build for Finland (default)
 ./build-mtb-overlay.sh germany          # Build for another country
 ./build-mtb-overlay.sh --download finland  # Force fresh download
-./build-mtb-overlay.sh --push finland    # Build and push to Karoo (reboots device)
-./build-mtb-overlay.sh --push-only finland # Push existing map and reboot
+./build-mtb-overlay.sh --push finland    # Build and push to Karoo (restart device after)
+./build-mtb-overlay.sh --push-only finland # Push existing map (restart device after)
 ```
 
 ### Linux (TUI)
@@ -63,7 +63,7 @@ sudo apt install whiptail openjdk-17-jre osmium-tool curl
 
 Menu-driven interface with country selection, cached data management, and push-to-Karoo & reboot support.
 
-## Push to Karoo & Reboot
+## Push to Karoo
 
 All scripts support pushing to a Karoo device via ADB:
 
@@ -71,7 +71,7 @@ All scripts support pushing to a Karoo device via ADB:
 2. Detects the actual `offline_vXXX.xml` theme filename on the device (e.g., `offline_v15.xml`, `offline_v16.xml`)
 3. Backs up the existing theme file as `<filename>.bak`
 4. Pushes the `.map` file, theme file, and icon assets (using the detected device filename)
-5. Reboots the device so the new map data is loaded
+5. Prompts the user to restart the device (restarting via power menu avoids bug report notifications)
 
 On Windows, ADB is auto-downloaded if missing. On Linux, install it separately (`sudo apt install adb`).
 

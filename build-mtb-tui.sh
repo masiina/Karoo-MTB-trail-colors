@@ -1619,7 +1619,7 @@ do_push_to_karoo() {
         region="${map_files[0]}"
     else
         local choice
-        choice=$(wt_menu "Push to Karoo & Reboot" \
+        choice=$(wt_menu "Push to Karoo" \
             "Select which overlay map to push:" \
             15 60 6 "${map_files[@]}")
         if [[ -z "$choice" ]]; then
@@ -1641,8 +1641,8 @@ do_push_to_karoo() {
         theme_msg="\n\nNo offline_v15.xml found in data/ folder.\nYou will need to push the theme manually."
     fi
 
-    if ! wt_yesno "Push to Karoo & Reboot" \
-        "Push the following to the Karoo and reboot?\n\n  Map:   ${region}-mtb-overlay.map ($map_size)\n  Path:  ${maps_path}/${region}-mtb-overlay.map${theme_msg}\n\nImportant: Do NOT overwrite existing Hammerhead base maps.\nThe overlay uses a different filename, so it's safe.\n\nThe device will reboot after push to reload map data."; then
+    if ! wt_yesno "Push to Karoo" \
+        "Push the following to the Karoo?\n\n  Map:   ${region}-mtb-overlay.map ($map_size)\n  Path:  ${maps_path}/${region}-mtb-overlay.map${theme_msg}\n\nImportant: Do NOT overwrite existing Hammerhead base maps.\nThe overlay uses a different filename, so it's safe.\n\nAfter push, restart the device to reload map data."; then
         return 0
     fi
 
@@ -1685,12 +1685,8 @@ do_push_to_karoo() {
         fi
     fi
 
-    log_step "Rebooting Karoo to reload map data"
-    "$adb_cmd" reboot
-    log_ok "Device is rebooting"
-
     wt_msgbox "Push Complete" \
-        "Files pushed to Karoo successfully!\n\nRebooting device to reload map data...\nThe overlay map will be available after restart." 10 60
+        "Files pushed to Karoo successfully!\n\nPlease restart the Karoo to reload map data.\nHold power button → Restart.\n\nOr run: adb reboot" 12 60
 
     return 0
 }
@@ -1723,7 +1719,7 @@ main_menu() {
         choice=$(wt_menu "$APP_NAME" "$msg" 20 65 5 \
             "1" "Select country & build overlay map" \
             "2" "Re-build from cached data" \
-            "3" "Push map to Karoo & reboot device" \
+            "3" "Push map to Karoo device" \
             "4" "Delete cached PBF data" \
             "5" "Exit")
 
