@@ -622,10 +622,10 @@ ensure_theme_file() {
         <m k="surface" v="~">
             <m k="cycleway" v="*" zoom-min="13">
                 <m k="bridge" v="yes|true">
-                    <line use="paved_cycleway_casing" cap="butt" width="1.9"/>
+                    <line use="paved_cycleway_casing" cap="butt" width="1.2"/>
                 </m>
                 <m k="bridge" v="~">
-                    <line use="paved_cycleway_casing" width="1.9"/>
+                    <line use="paved_cycleway_casing" width="1.2"/>
                 </m>
             </m>
             <m k="cycleway" v="~" zoom-min="15">
@@ -646,10 +646,10 @@ ensure_theme_file() {
         <m k="surface" v="~">
             <m k="cycleway" v="*" zoom-min="12">
                 <m k="bridge" v="yes|true">
-                    <line use="paved_cycleway_casing" cap="butt" width="2.1"/>
+                    <line use="paved_cycleway_casing" cap="butt" width="1.2"/>
                 </m>
                 <m k="bridge" v="~">
-                    <line use="paved_cycleway_casing" width="2.1"/>
+                    <line use="paved_cycleway_casing" width="1.2"/>
                 </m>
             </m>
             <m k="cycleway" v="~" zoom-min="14">
@@ -670,10 +670,10 @@ ensure_theme_file() {
         <m k="surface" v="~">
             <m k="cycleway" v="*" zoom-min="12">
                 <m k="bridge" v="yes|true">
-                    <line use="paved_cycleway_casing" cap="butt" width="2.3"/>
+                    <line use="paved_cycleway_casing" cap="butt" width="1.2"/>
                 </m>
                 <m k="bridge" v="~">
-                    <line use="paved_cycleway_casing" width="2.3"/>
+                    <line use="paved_cycleway_casing" width="1.2"/>
                 </m>
             </m>
             <m k="cycleway" v="~" zoom-min="14">
@@ -694,10 +694,10 @@ ensure_theme_file() {
         <m k="surface" v="~">
             <m k="cycleway" v="*" zoom-min="10">
                 <m k="bridge" v="yes|true">
-                    <line use="paved_cycleway_casing" cap="butt" width="2.5"/>
+                    <line use="paved_cycleway_casing" cap="butt" width="1.2"/>
                 </m>
                 <m k="bridge" v="~">
-                    <line use="paved_cycleway_casing" width="2.5"/>
+                    <line use="paved_cycleway_casing" width="1.2"/>
                 </m>
             </m>
             <m k="cycleway" v="~" zoom-min="13">
@@ -718,10 +718,10 @@ ensure_theme_file() {
         <m k="surface" v="~">
             <m k="cycleway" v="*" zoom-min="10">
                 <m k="bridge" v="yes|true">
-                    <line use="paved_cycleway_casing" cap="butt" width="2.5"/>
+                    <line use="paved_cycleway_casing" cap="butt" width="1.2"/>
                 </m>
                 <m k="bridge" v="~">
-                    <line use="paved_cycleway_casing" width="2.5"/>
+                    <line use="paved_cycleway_casing" width="1.2"/>
                 </m>
             </m>
             <m k="cycleway" v="~" zoom-min="12">
