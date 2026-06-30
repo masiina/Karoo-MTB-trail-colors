@@ -15,7 +15,7 @@ Produces an overlay map containing ways with `mtb:scale` tags and `natural=bare_
 | S2 | 🟡 Yellow `#FFCC00` | Difficult |
 | S3 | 🟠 Orange `#FF8800` | Very Difficult |
 | S4 | 🔴 Red `#DD0000` | Extreme |
-| S5 | 🔴 Red `#DD0000` | Extreme |
+| S5 | 🟣 Magenta `#E40ADD` | Extreme |
 
 Each trail renders as a solid color casing (width 0.9) with a dashed black center line (width 0.4, dasharray 5,6).
 
