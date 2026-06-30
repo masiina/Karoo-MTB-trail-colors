@@ -358,7 +358,7 @@ ensure_theme_file() {
     <!-- Waterways (rivers, streams, etc.) -->
     <m e="way" k="waterway">
         <m v="ditch|drain" zoom-min="14">
-            <line stroke="#FF0000" cap="round" width="2.0"/>
+            <line use="water" width="0.5"/>
         </m>
         <m v="stream" zoom-min="13">
             <line use="water" width="0.4"/>

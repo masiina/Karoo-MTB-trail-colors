@@ -339,7 +339,7 @@ function Ensure-ThemeFile {
     <!-- Waterways (rivers, streams, etc.) -->
     <m e="way" k="waterway">
         <m v="ditch|drain" zoom-min="14">
-            <line stroke="#FF0000" cap="round" width="2.0"/>
+            <line use="water" width="0.5"/>
         </m>
         <m v="stream" zoom-min="13">
             <line use="water" width="0.4"/>
@@ -1406,36 +1406,32 @@ function Invoke-BuildPipeline {
     Add-Log ''
     Add-Log "=== Step 2/5: Generating merged tag-mapping ==="
 
-    # Regenerate merged tag-mapping if missing or stale (lacks dedup)
-    $needsMerge = -not (Test-Path $tagMappingMerged)
-    if (-not $needsMerge) {
-        $existingContent = Get-Content -Path $tagMappingMerged -Raw -ErrorAction SilentlyContinue
-        if ($existingContent -notmatch 'mtb-overlay-builder-dedup-v3') { $needsMerge = $true }
+    # Always regenerate merged tag-mapping from clean default
+    $defaultMapping = Join-Path $BuildDir 'tag-mapping-default.xml'
+    # Force re-download of default mapping to ensure clean slate
+    if (Test-Path $defaultMapping) {
+        Remove-Item $defaultMapping -Force -ErrorAction SilentlyContinue
+    }
+    if (-not (Test-Path $defaultMapping)) {
+        $mappingUrl = 'https://raw.githubusercontent.com/mapsforge/mapsforge/master/mapsforge-map-writer/src/main/config/tag-mapping.xml'
+        Add-Log '  Downloading default tag-mapping...'
+        Set-Status 'Downloading tag-mapping...'
+        try {
+            Invoke-FastDownload -Url $mappingUrl -OutFile $defaultMapping
+        } catch {
+            Add-Log "  ERROR: Failed to download tag-mapping: $_"
+            throw "Download failed: $_"
+        }
     }
 
-    if ($needsMerge) {
-        $defaultMapping = Join-Path $BuildDir 'tag-mapping-default.xml'
-        if (-not (Test-Path $defaultMapping)) {
-            $mappingUrl = 'https://raw.githubusercontent.com/mapsforge/mapsforge/master/mapsforge-map-writer/src/main/config/tag-mapping.xml'
-            Add-Log '  Downloading default tag-mapping...'
-            Set-Status 'Downloading tag-mapping...'
-            try {
-                Invoke-FastDownload -Url $mappingUrl -OutFile $defaultMapping
-            } catch {
-                Add-Log "  ERROR: Failed to download tag-mapping: $_"
-                throw "Download failed: $_"
-            }
-        }
+    Add-Log '  Merging MTB scale tags...'
+    $content = Get-Content -Path $defaultMapping -Raw
 
-        Add-Log '  Merging MTB scale tags...'
-        $content = Get-Content -Path $defaultMapping -Raw
+    # Remove any existing MTB/ditch tags from the default mapping to avoid duplicates
+    $content = $content -replace '(?m)^\s*<osm-tag\s+key="mtb:scale[^/]*/>\s*\r?\n', ''
+    $content = $content -replace '(?m)^\s*<osm-tag\s+key="waterway"\s+value="ditch"[^/]*/>\s*\r?\n', ''
 
-        # Remove any existing MTB tags from the default mapping to avoid duplicates
-        $content = $content -replace '(?m)^\s*<osm-tag\s+key="mtb:scale[^/]*/>\s*\r?\n', ''
-        # Remove existing waterway=ditch (default has drain but not ditch)
-        $content = $content -replace '(?m)^\s*<osm-tag\s+key="waterway"\s+value="ditch"[^/]*/>\s*\r?\n', ''
-
-        $mtbTags = @'
+    $mtbTags = @'
         <!-- MTB SCALE (added by mtb-overlay-builder) -->
         <osm-tag key="mtb:scale" value="0" zoom-appear="12"/>
         <osm-tag key="mtb:scale" value="1" zoom-appear="12"/>
@@ -1458,14 +1454,9 @@ function Invoke-BuildPipeline {
         <osm-tag key="natural" value="bare_rock" zoom-appear="12"/>
         <osm-tag key="waterway" value="ditch" zoom-appear="14"/>
 '@
-        $content = $content -replace '</ways>', "$mtbTags`n        </ways>"
-        # Add version marker so we can detect stale merged files
-        $content = $content -replace '<osm-map-tag-mapping', "<osm-map-tag-mapping`n  <!-- mtb-overlay-builder-dedup-v3 -->"
-        Set-Content -Path $tagMappingMerged -Value $content -Encoding UTF8
+    $content = $content -replace '</ways>', "$mtbTags`n        </ways>"
+    Set-Content -Path $tagMappingMerged -Value $content -Encoding UTF8
         Add-Log "  Merged tag-mapping: $tagMappingMerged"
-    } else {
-        Add-Log "  [OK] Merged tag-mapping found at $tagMappingMerged"
-    }
     Add-Log "  [OK] Step 2/5 complete"
 
     # ----------------------------------------------------------
@@ -2047,6 +2038,19 @@ $refreshBtn.Add_Click({
         } catch {
             Add-Log "  WARNING: Could not delete $($filteredPbf) - file is locked."
             Add-Log "  Close any programs using it and try again."
+        }
+    }
+    # Also clean up tag-mapping files to force clean regeneration
+    $tagMappingMerged = Join-Path $BuildDir 'tag-mapping-mtb-merged.xml'
+    $tagMappingDefault = Join-Path $BuildDir 'tag-mapping-default.xml'
+    foreach ($tm in @($tagMappingMerged, $tagMappingDefault)) {
+        if (Test-Path $tm) {
+            try {
+                Remove-Item $tm -Force -ErrorAction Stop
+                $deleted += "Tag-mapping ($(Split-Path $tm -Leaf))"
+            } catch {
+                Add-Log "  WARNING: Could not delete $($tm) - file is locked."
+            }
         }
     }
 
