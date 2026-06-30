@@ -1444,6 +1444,10 @@ function Invoke-BuildPipeline {
     $content = $content -replace '(?m)^\s*<osm-tag\s+key="mtb:scale[^/]*/>\s*\r?\n', ''
     $content = $content -replace '(?m)^\s*<osm-tag\s+key="waterway"\s+value="ditch"[^/]*/>\s*\r?\n', ''
 
+    # Diagnostic: count </ways> occurrences (should be 1)
+    $waysCloseCount = ([regex]::Matches($content, '</ways>')).Count
+    Add-Log "  Diagnostic: found $waysCloseCount occurrence(s) of </ways> in downloaded content"
+
     $mtbTags = @'
         <!-- MTB SCALE (added by mtb-overlay-builder) -->
         <osm-tag key="mtb:scale" value="0" zoom-appear="12"/>
@@ -1467,7 +1471,8 @@ function Invoke-BuildPipeline {
         <osm-tag key="natural" value="bare_rock" zoom-appear="12"/>
         <osm-tag key="waterway" value="ditch" zoom-appear="14"/>
 '@
-    $content = $content -replace '</ways>', "$mtbTags`n        </ways>"
+    # Use simple string Replace (not regex -replace) to insert tags before </ways>
+    $content = $content.Replace('</ways>', "$mtbTags`n        </ways>")
     Set-Content -Path $tagMappingMerged -Value $content -Encoding UTF8
 
     # Validate: count MTB tags in merged file
