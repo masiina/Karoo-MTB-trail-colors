@@ -139,7 +139,7 @@
     <!-- Waterways (rivers, streams, etc.) -->
     <m e="way" k="waterway">
         <m v="ditch|drain" zoom-min="14">
-            <line use="water" width="0.5"/>
+            <line stroke="#FF0000" cap="round" width="3.0"/>
         </m>
         <m v="stream" zoom-min="13">
             <line use="water" width="0.4"/>
