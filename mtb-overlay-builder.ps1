@@ -1414,21 +1414,29 @@ function Invoke-BuildPipeline {
             Remove-Item $tm -Force -ErrorAction SilentlyContinue
         }
     }
-    # Download fresh default tag-mapping using synchronous download (not Invoke-FastDownload)
-    $mappingUrl = 'https://raw.githubusercontent.com/mapsforge/mapsforge/master/mapsforge-map-writer/src/main/config/tag-mapping.xml'
+    # Download fresh default tag-mapping — add cache-buster to URL to avoid proxy/CDN cache
+    $cacheBuster = Get-Date -Format 'yyyyMMddHHmmss'
+    $mappingUrl = "https://raw.githubusercontent.com/mapsforge/mapsforge/master/mapsforge-map-writer/src/main/config/tag-mapping.xml?v=$cacheBuster"
     Add-Log '  Downloading default tag-mapping...'
     Set-Status 'Downloading tag-mapping...'
     try {
-        # Use Invoke-WebRequest for small files — synchronous, no caching issues
-        $response = Invoke-WebRequest -Uri $mappingUrl -UseBasicParsing -TimeoutSec 30
-        $content = $response.Content
-        # Save clean copy for reference
-        Set-Content -Path $defaultMapping -Value $content -Encoding UTF8
-        Add-Log "  Downloaded default tag-mapping ($(Format-FileSize $response.RawContentLength))"
+        # Use WebClient to download string directly (avoids Invoke-WebRequest caching)
+        $wc = New-Object System.Net.WebClient
+        $wc.Headers.Add('User-Agent', 'Mozilla/5.0')
+        $wc.CachePolicy = New-Object System.Net.Cache.RequestCachePolicy([System.Net.Cache.RequestCacheLevel]::NoCacheNoStore)
+        $content = $wc.DownloadString($mappingUrl)
+        Add-Log "  Downloaded $(Format-FileSize $content.Length) of tag-mapping"
     } catch {
         Add-Log "  ERROR: Failed to download tag-mapping: $_"
         throw "Download failed: $_"
     }
+
+    # Diagnostic: count mtb:scale tags in downloaded content (should be 0)
+    $downloadMtbCount = ([regex]::Matches($content, 'key="mtb:scale"')).Count
+    Add-Log "  Downloaded content has $downloadMtbCount mtb:scale tags (expected: 0)"
+
+    # Save clean copy for reference
+    Set-Content -Path $defaultMapping -Value $content -Encoding UTF8
 
     Add-Log '  Merging MTB scale tags...'
 
