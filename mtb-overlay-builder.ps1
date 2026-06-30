@@ -1471,8 +1471,13 @@ function Invoke-BuildPipeline {
         <osm-tag key="natural" value="bare_rock" zoom-appear="12"/>
         <osm-tag key="waterway" value="ditch" zoom-appear="14"/>
 '@
-    # Use simple string Replace (not regex -replace) to insert tags before </ways>
-    $content = $content.Replace('</ways>', "$mtbTags`n        </ways>")
+    # Insert MTB tags before the LAST </ways> only (the file has multiple nested </ways>)
+    $lastWaysIndex = $content.LastIndexOf('</ways>')
+    if ($lastWaysIndex -ge 0) {
+        $content = $content.Substring(0, $lastWaysIndex) + $mtbTags + "`n        " + $content.Substring($lastWaysIndex)
+    } else {
+        Add-Log "  WARNING: Could not find </ways> in tag-mapping. MTB tags not added."
+    }
     Set-Content -Path $tagMappingMerged -Value $content -Encoding UTF8
 
     # Validate: count MTB tags in merged file
