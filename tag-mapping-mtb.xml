@@ -65,6 +65,9 @@
   <osm-tag key="network"  value="ncn" zoom-appear="11" renderable="false" />
   <osm-tag key="route"    value="mtb" zoom-appear="13" />
 
+  <!-- ====== WATERWAYS (drain already in default tag-mapping) ====== -->
+  <osm-tag key="waterway" value="ditch" zoom-appear="14" />
+
   <!-- ====== NATURAL FEATURES ====== -->
   <osm-tag key="natural"  value="bare_rock"  zoom-appear="12" />
 

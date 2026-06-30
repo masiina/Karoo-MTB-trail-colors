@@ -220,7 +220,7 @@ function Ensure-ThemeFile {
 
     <!-- LINE STYLES -->
     <style-line id="path" stroke="#606060" dasharray="6,6" cap="round" width="0.8"/>
-    <style-line id="track" stroke="#75703f" dasharray="6,6" cap="round" width="1.0"/>
+    <style-line id="track" stroke="#75703f" dasharray="6,6" cap="round" width="0.8"/>
 
     <style-line id="cycling_path" stroke="#3148D8" dasharray="4,3" cap="round" width="0.5"/>
     <style-line id="MTB_path" stroke="#000000" dasharray="5,6" cap="round" width="0.4"/>
@@ -339,7 +339,7 @@ function Ensure-ThemeFile {
     <!-- Waterways (rivers, streams, etc.) -->
     <m e="way" k="waterway">
         <m v="ditch|drain" zoom-min="14">
-            <line use="water" width="0.2"/>
+            <line use="water" width="0.5"/>
         </m>
         <m v="stream" zoom-min="13">
             <line use="water" width="0.4"/>
@@ -506,23 +506,6 @@ function Ensure-ThemeFile {
         </m>
     </m>
 
-    <!-- footway (separate bicycle-allowed from other)-->
-    <m e="way" k="highway" v="footway">
-        <m select="first">
-            <m k="bicycle" v="yes|designated">
-                <line use="cycling_path"/>
-            </m>
-            <m k="footway" v="sidewalk" zoom-min="15">
-                <!-- Not sure if there is a better way to not display sidewalks -->
-                <line width="0.0"/>
-            </m>
-            <m k="~" v="~">
-                <line use="track_chasing"/>
-                <line use="path"/>
-            </m>
-        </m>
-    </m>
-
     <!-- service roads - separate parking aisle and driveway from other service roads -->
     <m e="way" k="highway" v="service">
         <m k="service" v="driveway" zoom-min="17">
@@ -546,13 +529,13 @@ function Ensure-ThemeFile {
             <text use="road_label" size="12" priority="15"/>
         </m>
     </m>
-    <m e="way" k="highway" v="cycleway">
+    <m e="way" k="highway" v="cycleway|footway">
         <!-- differentiate unpaved from paved -->
         <m k="surface" v="unpaved|compacted|ground|gravel|dirt|grass|sand|fine_gravel">
-            <line use="unpaved_casing" width="1.2"/>
+            <line use="unpaved_casing" width="0.5"/>
         </m>
         <m k="surface" v="~">
-            <line use="paved_cycleway_casing" width="1.2"/>
+            <line use="paved_cycleway_casing" width="0.5"/>
         </m>
     </m>
     <m e="way" k="highway" v="residential|living_street">
@@ -677,7 +660,7 @@ function Ensure-ThemeFile {
 
     <!-- motorways and trunk roads - no casing -->
     <m e="way" k="highway" v="motorway|motorway_link|trunk|trunk_link">
-        <line stroke="#dbb042" width="1.6"/>
+        <line stroke="#e35f5f" width="1.6"/>
         <text use="road_label" size="13" priority="14"/>
     </m>
 
@@ -719,10 +702,10 @@ function Ensure-ThemeFile {
     </m>
     <m e="way" k="highway" v="secondary|secondary_link">
         <m zoom-min="13">
-            <line stroke="#ffffff" cap="round" width="1.7"/>
+            <line stroke="#ebeba9" cap="round" width="1.7"/>
         </m>
         <m zoom-max="12" zoom-min="10">
-            <line stroke="#ffffff" cap="round" width="1.5"/>
+            <line stroke="#ebeba9" cap="round" width="1.5"/>
         </m>
         <m zoom-min="10">
             <text use="road_label" size="13" priority="11"/>
@@ -730,10 +713,10 @@ function Ensure-ThemeFile {
     </m>
     <m e="way" k="highway" v="primary|primary_link">
         <m zoom-min="12">
-            <line stroke="#ffffff" cap="round" width="1.9"/>
+            <line stroke="#e8c1c1" cap="round" width="1.9"/>
         </m>
         <m zoom-max="11" zoom-min="8">
-            <line stroke="#ffffff" cap="round" width="1.7"/>
+            <line stroke="#e8c1c1" cap="round" width="1.7"/>
         </m>
         <m zoom-min="8">
             <text use="road_label" size="13" priority="12"/>
@@ -802,7 +785,7 @@ function Ensure-ThemeFile {
     </m>
 
     <!-- highway=cycleway indicates a separate way used for cycling -->
-    <m e="way" k="highway" v="cycleway">
+    <m e="way" k="highway" v="cycleway|footway">
         <line use="cycling_path"/>
         <m zoom-min="13">
             <text use="road_label" fill="#222222" size="14" priority="6"/>
@@ -1427,7 +1410,7 @@ function Invoke-BuildPipeline {
     $needsMerge = -not (Test-Path $tagMappingMerged)
     if (-not $needsMerge) {
         $existingContent = Get-Content -Path $tagMappingMerged -Raw -ErrorAction SilentlyContinue
-        if ($existingContent -notmatch 'mtb-overlay-builder-dedup-v2') { $needsMerge = $true }
+        if ($existingContent -notmatch 'mtb-overlay-builder-dedup-v3') { $needsMerge = $true }
     }
 
     if ($needsMerge) {
@@ -1449,6 +1432,8 @@ function Invoke-BuildPipeline {
 
         # Remove any existing MTB tags from the default mapping to avoid duplicates
         $content = $content -replace '(?m)^\s*<osm-tag\s+key="mtb:scale[^/]*/>\s*\r?\n', ''
+        # Remove existing waterway=ditch (default has drain but not ditch)
+        $content = $content -replace '(?m)^\s*<osm-tag\s+key="waterway"\s+value="ditch"[^/]*/>\s*\r?\n', ''
 
         $mtbTags = @'
         <!-- MTB SCALE (added by mtb-overlay-builder) -->
@@ -1471,10 +1456,11 @@ function Invoke-BuildPipeline {
         <osm-tag key="mtb:scale:imba" value="3" zoom-appear="12" renderable="false"/>
         <osm-tag key="mtb:scale:imba" value="4" zoom-appear="12" renderable="false"/>
         <osm-tag key="natural" value="bare_rock" zoom-appear="12"/>
+        <osm-tag key="waterway" value="ditch" zoom-appear="14"/>
 '@
         $content = $content -replace '</ways>', "$mtbTags`n        </ways>"
         # Add version marker so we can detect stale merged files
-        $content = $content -replace '<osm-map-tag-mapping', "<osm-map-tag-mapping`n  <!-- mtb-overlay-builder-dedup-v2 -->"
+        $content = $content -replace '<osm-map-tag-mapping', "<osm-map-tag-mapping`n  <!-- mtb-overlay-builder-dedup-v3 -->"
         Set-Content -Path $tagMappingMerged -Value $content -Encoding UTF8
         Add-Log "  Merged tag-mapping: $tagMappingMerged"
     } else {
@@ -1503,10 +1489,10 @@ function Invoke-BuildPipeline {
     Add-Log "  [OK] Step 3/5 complete"
 
     # ----------------------------------------------------------
-    # 4. Filter to mtb:scale ways and bare_rock areas
+    # 4. Filter to mtb:scale ways, bare_rock areas, and ditches
     # ----------------------------------------------------------
     Add-Log ''
-    Add-Log '=== Step 4/5: Filtering to mtb:scale ways and bare_rock areas ==='
+    Add-Log '=== Step 4/5: Filtering to mtb:scale ways, bare_rock areas, and ditches ==='
 
     if ((Test-Path $filteredPbf) -and ((Get-Item $filteredPbf).LastWriteTime -gt (Get-Item $inputPbf).LastWriteTime)) {
         $size = (Get-Item $filteredPbf).Length
@@ -1515,7 +1501,7 @@ function Invoke-BuildPipeline {
     } else {
         Add-Log '  Running Osmosis filter...'
         Set-Status 'Filtering OSM data...'
-        $exitCode = Invoke-Process -FileName $osmosisBat -Arguments "--rb file=`"$inputPbf`" --tf accept-ways mtb:scale=* natural=bare_rock --used-node --wb file=`"$filteredPbf`" omitmetadata=true" -TimeoutMs 600000 -StatusPrefix 'Filtering OSM data...'
+        $exitCode = Invoke-Process -FileName $osmosisBat -Arguments "--rb file=`"$inputPbf`" --tf accept-ways mtb:scale=* natural=bare_rock waterway=ditch waterway=drain --used-node --wb file=`"$filteredPbf`" omitmetadata=true" -TimeoutMs 600000 -StatusPrefix 'Filtering OSM data...'
         if ($exitCode -ne 0) {
             Add-Log "  ERROR: Osmosis filter failed with exit code $exitCode"
             throw "Osmosis filter failed"

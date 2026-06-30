@@ -280,7 +280,7 @@ ensure_theme_file() {
 
     <!-- LINE STYLES -->
     <style-line id="path" stroke="#606060" dasharray="6,6" cap="round" width="0.8"/>
-    <style-line id="track" stroke="#75703f" dasharray="6,6" cap="round" width="1.0"/>
+    <style-line id="track" stroke="#75703f" dasharray="6,6" cap="round" width="0.8"/>
 
     <style-line id="cycling_path" stroke="#3148D8" dasharray="4,3" cap="round" width="0.5"/>
     <style-line id="MTB_path" stroke="#000000" dasharray="5,6" cap="round" width="0.4"/>
@@ -399,7 +399,7 @@ ensure_theme_file() {
     <!-- Waterways (rivers, streams, etc.) -->
     <m e="way" k="waterway">
         <m v="ditch|drain" zoom-min="14">
-            <line use="water" width="0.2"/>
+            <line use="water" width="0.5"/>
         </m>
         <m v="stream" zoom-min="13">
             <line use="water" width="0.4"/>
@@ -566,23 +566,6 @@ ensure_theme_file() {
         </m>
     </m>
 
-    <!-- footway (separate bicycle-allowed from other)-->
-    <m e="way" k="highway" v="footway">
-        <m select="first">
-            <m k="bicycle" v="yes|designated">
-                <line use="cycling_path"/>
-            </m>
-            <m k="footway" v="sidewalk" zoom-min="15">
-                <!-- Not sure if there is a better way to not display sidewalks -->
-                <line width="0.0"/>
-            </m>
-            <m k="~" v="~">
-                <line use="track_chasing"/>
-                <line use="path"/>
-            </m>
-        </m>
-    </m>
-
     <!-- service roads - separate parking aisle and driveway from other service roads -->
     <m e="way" k="highway" v="service">
         <m k="service" v="driveway" zoom-min="17">
@@ -606,13 +589,13 @@ ensure_theme_file() {
             <text use="road_label" size="12" priority="15"/>
         </m>
     </m>
-    <m e="way" k="highway" v="cycleway">
+    <m e="way" k="highway" v="cycleway|footway">
         <!-- differentiate unpaved from paved -->
         <m k="surface" v="unpaved|compacted|ground|gravel|dirt|grass|sand|fine_gravel">
-            <line use="unpaved_casing" width="1.2"/>
+            <line use="unpaved_casing" width="0.5"/>
         </m>
         <m k="surface" v="~">
-            <line use="paved_cycleway_casing" width="1.2"/>
+            <line use="paved_cycleway_casing" width="0.5"/>
         </m>
     </m>
     <m e="way" k="highway" v="residential|living_street">
@@ -737,7 +720,7 @@ ensure_theme_file() {
 
     <!-- motorways and trunk roads - no casing -->
     <m e="way" k="highway" v="motorway|motorway_link|trunk|trunk_link">
-        <line stroke="#dbb042" width="1.6"/>
+        <line stroke="#e35f5f" width="1.6"/>
         <text use="road_label" size="13" priority="14"/>
     </m>
 
@@ -779,10 +762,10 @@ ensure_theme_file() {
     </m>
     <m e="way" k="highway" v="secondary|secondary_link">
         <m zoom-min="13">
-            <line stroke="#ffffff" cap="round" width="1.7"/>
+            <line stroke="#ebeba9" cap="round" width="1.7"/>
         </m>
         <m zoom-max="12" zoom-min="10">
-            <line stroke="#ffffff" cap="round" width="1.5"/>
+            <line stroke="#ebeba9" cap="round" width="1.5"/>
         </m>
         <m zoom-min="10">
             <text use="road_label" size="13" priority="11"/>
@@ -790,10 +773,10 @@ ensure_theme_file() {
     </m>
     <m e="way" k="highway" v="primary|primary_link">
         <m zoom-min="12">
-            <line stroke="#ffffff" cap="round" width="1.9"/>
+            <line stroke="#e8c1c1" cap="round" width="1.9"/>
         </m>
         <m zoom-max="11" zoom-min="8">
-            <line stroke="#ffffff" cap="round" width="1.7"/>
+            <line stroke="#e8c1c1" cap="round" width="1.7"/>
         </m>
         <m zoom-min="8">
             <text use="road_label" size="13" priority="12"/>
@@ -862,7 +845,7 @@ ensure_theme_file() {
     </m>
 
     <!-- highway=cycleway indicates a separate way used for cycling -->
-    <m e="way" k="highway" v="cycleway">
+    <m e="way" k="highway" v="cycleway|footway">
         <line use="cycling_path"/>
         <m zoom-min="13">
             <text use="road_label" fill="#222222" size="14" priority="6"/>
@@ -1123,6 +1106,8 @@ generate_tag_mapping() {
 
     # Remove any existing MTB tags from the default mapping to avoid duplicates
     sed -i '/<osm-tag key="mtb:scale/d' "${TAG_MAPPING}"
+    # Remove existing waterway=ditch (default has drain but not ditch)
+    sed -i '/<osm-tag key="waterway" value="ditch"/d' "${TAG_MAPPING}"
 
     sed -i '/<\/ways>/i\
 \        <!-- MTB SCALE -->\
@@ -1145,6 +1130,7 @@ generate_tag_mapping() {
         <osm-tag key="mtb:scale:imba" value="3" zoom-appear="12" renderable="false"/>\
         <osm-tag key="mtb:scale:imba" value="4" zoom-appear="12" renderable="false"/>\
         <osm-tag key="natural" value="bare_rock" zoom-appear="12"/>\
+        <osm-tag key="waterway" value="ditch" zoom-appear="14"/>\
 ' "${TAG_MAPPING}"
 
     log_ok "Tag-mapping generated"
@@ -1197,11 +1183,11 @@ build_map() {
 
     # --- Filter ---
     if [[ ! -f "${filtered_pbf}" ]] || [[ "${input_pbf}" -nt "${filtered_pbf}" ]]; then
-        log_step "Filtering to mtb:scale ways and bare_rock areas"
+        log_step "Filtering to mtb:scale ways, bare_rock areas, and ditches"
 
         "${OSMOSIS_DIR}/bin/osmosis" \
             --rb file="${input_pbf}" \
-            --tf accept-ways mtb:scale=* natural=bare_rock \
+            --tf accept-ways mtb:scale=* natural=bare_rock waterway=ditch waterway=drain \
             --used-node \
             --wb file="${filtered_pbf}" omitmetadata=true 2>&1 | tail -5
 

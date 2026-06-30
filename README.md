@@ -4,7 +4,7 @@ Build Mapsforge overlay maps that render MTB trail difficulty as colored lines o
 
 ## What It Does
 
-Produces an overlay map containing ways with `mtb:scale` tags and `natural=bare_rock` areas. When displayed alongside a base map using the shared `offline_v15.xml` theme, colored trail lines and bare rock areas appear on top without duplicating roads, buildings, or other features.
+Produces an overlay map containing ways with `mtb:scale` tags, `natural=bare_rock` areas, and `waterway=ditch`/`waterway=drain` ways. When displayed alongside a base map using the shared `offline_v15.xml` theme, colored trail lines, bare rock areas, and ditches appear on top without duplicating roads, buildings, or other features.
 
 ### MTB Scale Colors
 
@@ -105,7 +105,7 @@ Cached tools are stored in `build-tools/`. PBF data files are also cached there.
 | Map type | `type=ram` | Filtered PBF fits in memory |
 | JVM heap | `-Xmx2g` | Needed for bare_rock polygon data |
 | Zoom intervals | `5,0,7,10,8,11,14,12,21` | Must be adjacent |
-| Filter | `--tf accept-ways mtb:scale=* natural=bare_rock` | Overlay only — prevents duplication with base map |
+| Filter | `--tf accept-ways mtb:scale=* natural=bare_rock waterway=ditch waterway=drain` | Overlay only — prevents duplication with base map |
 
 ## Project Files
 
