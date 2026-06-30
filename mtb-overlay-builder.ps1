@@ -1408,24 +1408,29 @@ function Invoke-BuildPipeline {
 
     # Always regenerate merged tag-mapping from clean default
     $defaultMapping = Join-Path $BuildDir 'tag-mapping-default.xml'
-    # Force re-download of default mapping to ensure clean slate
-    if (Test-Path $defaultMapping) {
-        Remove-Item $defaultMapping -Force -ErrorAction SilentlyContinue
-    }
-    if (-not (Test-Path $defaultMapping)) {
-        $mappingUrl = 'https://raw.githubusercontent.com/mapsforge/mapsforge/master/mapsforge-map-writer/src/main/config/tag-mapping.xml'
-        Add-Log '  Downloading default tag-mapping...'
-        Set-Status 'Downloading tag-mapping...'
-        try {
-            Invoke-FastDownload -Url $mappingUrl -OutFile $defaultMapping
-        } catch {
-            Add-Log "  ERROR: Failed to download tag-mapping: $_"
-            throw "Download failed: $_"
+    # Force delete both tag-mapping files to ensure clean slate
+    foreach ($tm in @($defaultMapping, $tagMappingMerged)) {
+        if (Test-Path $tm) {
+            Remove-Item $tm -Force -ErrorAction SilentlyContinue
         }
+    }
+    # Download fresh default tag-mapping using synchronous download (not Invoke-FastDownload)
+    $mappingUrl = 'https://raw.githubusercontent.com/mapsforge/mapsforge/master/mapsforge-map-writer/src/main/config/tag-mapping.xml'
+    Add-Log '  Downloading default tag-mapping...'
+    Set-Status 'Downloading tag-mapping...'
+    try {
+        # Use Invoke-WebRequest for small files — synchronous, no caching issues
+        $response = Invoke-WebRequest -Uri $mappingUrl -UseBasicParsing -TimeoutSec 30
+        $content = $response.Content
+        # Save clean copy for reference
+        Set-Content -Path $defaultMapping -Value $content -Encoding UTF8
+        Add-Log "  Downloaded default tag-mapping ($(Format-FileSize $response.RawContentLength))"
+    } catch {
+        Add-Log "  ERROR: Failed to download tag-mapping: $_"
+        throw "Download failed: $_"
     }
 
     Add-Log '  Merging MTB scale tags...'
-    $content = Get-Content -Path $defaultMapping -Raw
 
     # Remove any existing MTB/ditch tags from the default mapping to avoid duplicates
     $content = $content -replace '(?m)^\s*<osm-tag\s+key="mtb:scale[^/]*/>\s*\r?\n', ''
@@ -1456,7 +1461,13 @@ function Invoke-BuildPipeline {
 '@
     $content = $content -replace '</ways>', "$mtbTags`n        </ways>"
     Set-Content -Path $tagMappingMerged -Value $content -Encoding UTF8
-        Add-Log "  Merged tag-mapping: $tagMappingMerged"
+
+    # Validate: count MTB tags in merged file
+    $mtbCount = ([regex]::Matches($content, 'key="mtb:scale"')).Count
+    Add-Log "  Merged tag-mapping: $tagMappingMerged (mtb:scale tags: $mtbCount)"
+    if ($mtbCount -gt 7) {
+        Add-Log "  WARNING: Duplicate MTB tags detected ($mtbCount found, expected 7). Map writer will ignore duplicates."
+    }
     Add-Log "  [OK] Step 2/5 complete"
 
     # ----------------------------------------------------------
